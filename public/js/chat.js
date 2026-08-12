@@ -1,65 +1,67 @@
 (function () {
     let chatPollTimer = null;
     let activeConversationId = null;
+    let currentUser = null;
 
     document.addEventListener("DOMContentLoaded", () => {
-        const chatButton = document.getElementById("chat-btn");
-        const chatModal = document.getElementById("chat-modal");
-        const chatForm = document.getElementById("chat-form");
+        currentUser = TimeAuth.getCachedUser();
 
-        chatButton.addEventListener("click", () => {
-            openChat();
-        });
+        document.getElementById("chat-widget-btn").addEventListener("click", openChat);
+        document.getElementById("footer-chat-btn").addEventListener("click", openChat);
 
-        chatForm.addEventListener("submit", handleSendMessage);
-
-        if (chatModal) {
-            chatModal.addEventListener("click", (event) => {
-                if (event.target === chatModal) {
-                    chatModal.classList.remove("open");
-                    stopPolling();
-                }
-            });
-        }
+        document.getElementById("chat-form").addEventListener("submit", handleSendMessage);
     });
 
-    async function openChat() {
-        try {
-            const user = await TimeAuth.requireUser();
-            activeConversationId = user.id;
-            const modal = document.getElementById("chat-modal");
-            modal.classList.add("open");
-            await loadMessages();
-            startPolling();
-        } catch (error) {
-            if (error.message !== "Cancelled") alert(error.message);
-        }
+    function openChat() {
+        TimeAuth.requireUser()
+            .then((user) => {
+                currentUser = user;
+                activeConversationId = user.id;
+                const drawer = document.getElementById("chat-drawer");
+                drawer.classList.add("open");
+                loadMessages();
+                startPolling();
+            })
+            .catch((error) => {
+                if (error.message !== "Cancelled") {
+                    showToast(error.message, "error");
+                }
+            });
+    }
+
+    function closeChat() {
+        document.getElementById("chat-drawer").classList.remove("open");
+        stopPolling();
     }
 
     async function loadMessages() {
         if (!activeConversationId) return;
+        const container = document.getElementById("chat-messages");
         try {
-            const response = await TimeAPI.get(
-                `/messages/${encodeURIComponent(activeConversationId)}`
-            );
+            const response = await TimeAPI.getMessages(activeConversationId);
             renderMessages(response.messages || []);
         } catch (error) {
-            const container = document.getElementById("chat-messages");
-            container.innerHTML = `<p class="error-message">${escapeHtml(error.message)}</p>`;
+            container.innerHTML = `<div class="empty-state">UNABLE TO LOAD MESSAGES<br />${escapeHtml(error.message)}</div>`;
         }
     }
 
     function renderMessages(messages) {
         const container = document.getElementById("chat-messages");
         if (!container) return;
+
+        if (!messages.length) {
+            container.innerHTML = `<div class="empty-state">START A CONVERSATION<br />Our support team is here to help.</div>`;
+            return;
+        }
+
         container.innerHTML = messages
             .map(
                 (msg) => `
-            <div class="chat-msg ${escapeHtml(msg.sender)}">
-                <small>${escapeHtml(msg.sender)} · ${formatDate(msg.timestamp)}</small>
-                <div>${escapeHtml(msg.message)}</div>
-            </div>
-        `
+                <div class="chat-msg ${escapeHtml(msg.sender)}">
+                    <small>${escapeHtml(msg.sender)} · ${formatTime(msg.timestamp)}</small>
+                    <div>${escapeHtml(msg.message)}</div>
+                </div>
+            `
             )
             .join("");
         container.scrollTop = container.scrollHeight;
@@ -72,7 +74,7 @@
         if (!message || !activeConversationId) return;
 
         try {
-            await TimeAPI.post("/messages", {
+            await TimeAPI.sendMessage({
                 conversationId: activeConversationId,
                 sender: "user",
                 message,
@@ -80,7 +82,7 @@
             input.value = "";
             await loadMessages();
         } catch (error) {
-            alert(error.message);
+            showToast(error.message, "error");
         }
     }
 
@@ -96,6 +98,26 @@
         }
     }
 
+    document.addEventListener("click", (event) => {
+        if (event.target.closest("[data-close-drawer]")) {
+            const drawer = event.target.closest(".drawer");
+            if (drawer) {
+                drawer.classList.remove("open");
+                if (drawer.id === "chat-drawer") stopPolling();
+            }
+        }
+    });
+
+    function showToast(message, type = "info") {
+        const container = document.getElementById("toast-container");
+        if (!container) return;
+        const toast = document.createElement("div");
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+    }
+
     function escapeHtml(text) {
         if (!text) return "";
         return String(text)
@@ -106,12 +128,16 @@
             .replace(/'/g, "&#039;");
     }
 
-    function formatDate(isoString) {
+    function formatTime(isoString) {
         if (!isoString) return "";
         try {
-            return new Date(isoString).toLocaleTimeString();
+            return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         } catch (error) {
             return isoString;
         }
     }
+
+    window.TimeChat = {
+        openChat,
+    };
 })();

@@ -20,13 +20,13 @@
     // ------------------------------------------------
     async function checkAdminSession() {
         try {
-            const response = await TimeAPI.get("/admin/check");
+            const response = await TimeAPI.adminCheck();
             if (response.success && response.admin) {
                 showDashboard();
                 loadAllData();
             }
         } catch (error) {
-            // not logged in
+            // Not logged in
         }
     }
 
@@ -38,7 +38,7 @@
             const errorBox = document.getElementById("admin-login-error");
             errorBox.textContent = "";
             try {
-                const response = await TimeAPI.post("/admin/login", { password });
+                const response = await TimeAPI.adminLogin(password);
                 if (response.success) {
                     showDashboard();
                     loadAllData();
@@ -50,7 +50,7 @@
 
         document.getElementById("admin-logout").addEventListener("click", async () => {
             try {
-                await TimeAPI.post("/admin/logout");
+                await TimeAPI.adminLogout();
             } catch (error) {
                 // ignore
             }
@@ -61,29 +61,49 @@
     function showDashboard() {
         document.getElementById("admin-login").hidden = true;
         document.getElementById("admin-dashboard").hidden = false;
+        document.querySelector(".admin-sidebar").classList.remove("open");
     }
 
     // ------------------------------------------------
     // Tabs
     // ------------------------------------------------
     function setupTabs() {
-        document.querySelectorAll(".admin-tab").forEach((tab) => {
-            tab.addEventListener("click", () => {
-                const tabName = tab.dataset.tab;
-                document.querySelectorAll(".admin-tab").forEach((t) => t.classList.remove("active"));
-                tab.classList.add("active");
+        document.querySelectorAll(".admin-nav-btn[data-tab]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const tabName = btn.dataset.tab;
+                document.querySelectorAll(".admin-nav-btn").forEach((b) => b.classList.remove("active"));
+                btn.classList.add("active");
                 document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
                 document.getElementById(`tab-${tabName}`).classList.add("active");
                 currentTab = tabName;
+                document.getElementById("admin-page-title").textContent =
+                    tabName.charAt(0).toUpperCase() + tabName.slice(1);
                 if (tabName === "chat") {
                     loadConversations();
+                } else if (tabName === "settings") {
+                    loadSettings();
+                } else if (tabName === "orders") {
+                    loadOrders();
+                } else if (tabName === "products") {
+                    loadProducts();
+                } else if (tabName === "customers") {
+                    loadCustomers();
+                } else if (tabName === "overview") {
+                    loadOverview();
+                }
+                if (window.innerWidth <= 992) {
+                    document.querySelector(".admin-sidebar").classList.remove("open");
                 }
             });
+        });
+
+        document.getElementById("admin-sidebar-toggle").addEventListener("click", () => {
+            document.querySelector(".admin-sidebar").classList.toggle("open");
         });
     }
 
     function setupActionButtons() {
-        document.getElementById("add-product-btn").addEventListener("click", openProductForm);
+        document.getElementById("add-product-btn").addEventListener("click", () => openProductForm());
         document.getElementById("admin-chat-form").addEventListener("submit", handleAdminChatSend);
     }
 
@@ -95,59 +115,72 @@
             if (!orderId || !reason) return;
 
             try {
-                await updateOrderStatus(orderId, "rejected", reason);
-                document.getElementById("reject-modal").classList.remove("open");
+                const result = await TimeAPI.rejectOrder(orderId, reason);
+                if (result.success) {
+                    showToast(`Order #${orderId} rejected.`, "success");
+                    closeModal("reject-modal");
+                    await loadOrders();
+                    await loadOverview();
+                }
             } catch (error) {
-                alert(error.message);
+                showToast(error.message, "error");
             }
         });
     }
 
     function setupProductForm() {
-        // Product form is created dynamically; listener is attached in renderProducts
+        document.getElementById("product-form").addEventListener("submit", handleProductSubmit);
     }
 
     function setupAdminChat() {
-        const chatTab = document.querySelector('[data-tab="chat"]');
-        if (chatTab) {
-            chatTab.addEventListener("click", loadConversations);
-        }
+        // handled by tab load
     }
 
     // ------------------------------------------------
     // Load data
     // ------------------------------------------------
     async function loadAllData() {
-        await Promise.all([loadOverview(), loadOrders(), loadProducts(), loadCustomers(), loadConversations()]);
+        await Promise.all([
+            loadOverview(),
+            loadOrders(),
+            loadProducts(),
+            loadCustomers(),
+            loadConversations(),
+        ]);
     }
 
     async function loadOverview() {
         try {
             const [productsRes, ordersRes, usersRes] = await Promise.all([
-                TimeAPI.get("/products"),
-                TimeAPI.get("/orders"),
-                TimeAPI.get("/users"),
+                TimeAPI.getProducts(),
+                TimeAPI.getOrders(),
+                TimeAPI.getUsers(),
             ]);
             const products = productsRes.products || [];
             const orders = ordersRes.orders || [];
             const users = usersRes.users || [];
 
+            const totalRevenue = orders
+                .filter((o) => o.status !== "rejected" && o.status !== "cancelled")
+                .reduce((sum, o) => sum + Number(o.total), 0);
+
             const stats = [
-                { label: "Products", value: products.length },
-                { label: "Orders", value: orders.length },
-                { label: "Customers", value: users.length },
+                { label: "Total Orders", value: orders.length },
                 { label: "Pending Orders", value: orders.filter((o) => o.status === "pending").length },
+                { label: "Products", value: products.length },
+                { label: "Customers", value: users.length },
+                { label: "Revenue (ETB)", value: formatPrice(totalRevenue) },
             ];
 
             const container = document.getElementById("overview-stats");
             container.innerHTML = stats
                 .map(
                     (stat) => `
-                <div class="stat-card">
-                    <h3>${escapeHtml(stat.label)}</h3>
-                    <strong>${stat.value}</strong>
-                </div>
-            `
+                    <div class="stat-card">
+                        <h3>${escapeHtml(stat.label)}</h3>
+                        <div class="stat-value">${stat.value}</div>
+                    </div>
+                `
                 )
                 .join("");
         } catch (error) {
@@ -156,11 +189,14 @@
     }
 
     async function loadOrders() {
+        const container = document.getElementById("admin-orders-list");
+        if (!container) return;
+        container.innerHTML = '<div class="loading-skeleton">Loading orders...</div>';
         try {
-            const response = await TimeAPI.get("/orders");
+            const response = await TimeAPI.getOrders();
             renderOrders(response.orders || []);
         } catch (error) {
-            document.getElementById("admin-orders-list").innerHTML = `<p class="error-message">${escapeHtml(error.message)}</p>`;
+            container.innerHTML = `<p class="error-message">${escapeHtml(error.message)}</p>`;
         }
     }
 
@@ -169,7 +205,7 @@
         if (!container) return;
 
         if (!orders.length) {
-            container.innerHTML = `<p class="empty-state">No orders found.</p>`;
+            container.innerHTML = `<div class="empty-state">No orders found.</div>`;
             return;
         }
 
@@ -177,12 +213,12 @@
             .slice()
             .reverse()
             .map((order) => {
-                const actions = renderOrderActions(order.status);
+                const actions = renderOrderActions(order);
                 return `
                 <div class="admin-card">
                     <div class="admin-card-header">
                         <strong>Order #${order.id}</strong>
-                        <span class="order-status status-${escapeHtml(order.status)}">${escapeHtml(order.status)}</span>
+                        <span class="order-status-badge status-${order.status}">${escapeHtml(order.status)}</span>
                     </div>
                     <p><strong>Customer:</strong> ${escapeHtml(order.userName)} (${escapeHtml(order.email)})</p>
                     <ul class="order-items">
@@ -195,7 +231,7 @@
                     </ul>
                     <p><strong>Total:</strong> <span class="order-total">${formatPrice(order.total)} ${escapeHtml(order.currency)}</span></p>
                     <p><strong>Date:</strong> ${formatDate(order.createdAt)}</p>
-                    ${order.rejectionReason ? `<p class="rejection-reason">Rejection reason: ${escapeHtml(order.rejectionReason)}</p>` : ""}
+                    ${order.rejectionReason ? `<p class="rejection-reason">Reason: ${escapeHtml(order.rejectionReason)}</p>` : ""}
                     <div class="admin-actions">
                         ${actions}
                     </div>
@@ -205,92 +241,85 @@
             .join("");
     }
 
-    function renderOrderActions(status) {
+    function renderOrderActions(order) {
+        const status = order.status;
+        const orderId = order.id;
         const buttons = [];
 
         if (status === "pending") {
             buttons.push(
-                `<button class="btn btn-gold approve-order" data-id="${status === "pending" ? "" : ""}" onclick="window.__approveOrder(this)" data-order-id="${status === "pending" ? "" : ""}">Approve</button>`,
-                `<button class="btn btn-danger reject-order" onclick="window.__rejectOrder(this)" data-order-id="${status === "pending" ? "" : ""}">Reject</button>`
+                `<button class="btn btn-primary approve-order" data-order-id="${orderId}">✓ APPROVE</button>`,
+                `<button class="btn btn-danger reject-order" data-order-id="${orderId}">× REJECT</button>`
             );
         } else if (status === "approved") {
-            buttons.push(`<span class="success-message">Approved</span>`);
-            buttons.push(`<button class="btn btn-outline-gold processing-order" onclick="window.__updateStatus(this)" data-order-id="${status === "approved" ? "" : ""}" data-status="processing">Start Processing</button>`);
-        } else if (status === "processing") {
-            buttons.push(`<span class="success-message">Processing</span>`);
-            buttons.push(`<button class="btn btn-outline-gold shipped-order" onclick="window.__updateStatus(this)" data-order-id="${status === "processing" ? "" : ""}" data-status="shipped">Mark Shipped</button>`);
-        } else if (status === "shipped") {
-            buttons.push(`<span class="success-message">Shipped</span>`);
-            buttons.push(`<button class="btn btn-outline-gold delivered-order" onclick="window.__updateStatus(this)" data-order-id="${status === "shipped" ? "" : ""}" data-status="delivered">Mark Delivered</button>`);
+            buttons.push(`<span class="success-message">✓ APPROVED</span>`);
+            buttons.push(
+                `<button class="btn btn-outline deliver-order" data-order-id="${orderId}">MARK DELIVERED</button>`
+            );
         } else if (status === "delivered") {
-            buttons.push(`<span class="success-message">Delivered</span>`);
+            buttons.push(`<span class="success-message">DELIVERED</span>`);
         } else if (status === "rejected") {
-            buttons.push(`<span class="error-message">Rejected</span>`);
-            buttons.push(`<button class="btn btn-outline-gold approve-order" onclick="window.__approveOrder(this)" data-order-id="${status === "rejected" ? "" : ""}">Reopen / Approve</button>`);
+            buttons.push(`<span class="error-message">✕ REJECTED</span>`);
+            buttons.push(
+                `<button class="btn btn-outline approve-order" data-order-id="${orderId}">REOPEN / APPROVE</button>`
+            );
         } else if (status === "cancelled") {
-            buttons.push(`<span class="error-message">Cancelled</span>`);
+            buttons.push(`<span class="error-message">CANCELLED</span>`);
         }
 
         return buttons.join("");
     }
 
-    // Fix dynamic data-order-id bug from above.
+    // Event delegation for order actions
     document.addEventListener("click", (event) => {
         const approveBtn = event.target.closest(".approve-order");
         const rejectBtn = event.target.closest(".reject-order");
-        const updateBtn = event.target.closest("[data-status]");
+        const deliverBtn = event.target.closest(".deliver-order");
 
         if (approveBtn) {
             const orderId = Number(approveBtn.dataset.orderId);
-            if (orderId) window.__approveOrder(orderId);
+            if (orderId) approveOrder(orderId);
         }
 
         if (rejectBtn) {
             const orderId = Number(rejectBtn.dataset.orderId);
-            if (orderId) window.__rejectOrder(orderId);
+            if (orderId) openRejectModal(orderId);
         }
 
-        if (updateBtn) {
-            const orderId = Number(updateBtn.dataset.orderId);
-            const status = updateBtn.dataset.status;
-            if (orderId && status) window.__updateStatus(orderId, status);
+        if (deliverBtn) {
+            const orderId = Number(deliverBtn.dataset.orderId);
+            if (orderId) deliverOrder(orderId);
         }
     });
 
-    window.__approveOrder = async function (orderId) {
-        try {
-            await updateOrderStatus(orderId, "approved");
-        } catch (error) {
-            alert(error.message);
-        }
-    };
-
-    window.__rejectOrder = function (orderId) {
-        const modal = document.getElementById("reject-modal");
+    function openRejectModal(orderId) {
         document.getElementById("reject-order-id").value = orderId;
-        modal.classList.add("open");
-    };
+        openModal("reject-modal");
+    }
 
-    window.__updateStatus = async function (orderId, status) {
+    async function approveOrder(orderId) {
         try {
-            await updateOrderStatus(orderId, status);
-        } catch (error) {
-            alert(error.message);
-        }
-    };
-
-    async function updateOrderStatus(orderId, status, reason = "") {
-        try {
-            const payload = { status };
-            if (reason) payload.reason = reason;
-            await TimeAPI.patch(`/orders/${orderId}/status`, payload);
-            await loadOrders();
-            await loadOverview();
-            if (currentTab === "orders") {
-                // Already loaded
+            const result = await TimeAPI.approveOrder(orderId);
+            if (result.success) {
+                showToast(`Order #${orderId} approved.`, "success");
+                await loadOrders();
+                await loadOverview();
             }
         } catch (error) {
-            throw error;
+            showToast(error.message, "error");
+        }
+    }
+
+    async function deliverOrder(orderId) {
+        try {
+            const result = await TimeAPI.deliverOrder(orderId);
+            if (result.success) {
+                showToast(`Order #${orderId} delivered.`, "success");
+                await loadOrders();
+                await loadOverview();
+            }
+        } catch (error) {
+            showToast(error.message, "error");
         }
     }
 
@@ -298,11 +327,14 @@
     // Products
     // ------------------------------------------------
     async function loadProducts() {
+        const container = document.getElementById("admin-products-list");
+        if (!container) return;
+        container.innerHTML = '<div class="loading-skeleton">Loading products...</div>';
         try {
-            const response = await TimeAPI.get("/products");
+            const response = await TimeAPI.getProducts();
             renderAdminProducts(response.products || []);
         } catch (error) {
-            document.getElementById("admin-products-list").innerHTML = `<p class="error-message">${escapeHtml(error.message)}</p>`;
+            container.innerHTML = `<p class="error-message">${escapeHtml(error.message)}</p>`;
         }
     }
 
@@ -311,26 +343,26 @@
         if (!container) return;
 
         if (!products.length) {
-            container.innerHTML = `<p class="empty-state">No products found.</p>`;
+            container.innerHTML = `<div class="empty-state">No products found.</div>`;
             return;
         }
 
         container.innerHTML = products
             .map(
                 (product) => `
-            <div class="admin-card">
-                <div class="admin-card-header">
-                    <strong>#${product.id} - ${escapeHtml(product.name)}</strong>
-                    <span>${product.active ? "Active" : "Inactive"}</span>
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <strong>#${product.id} - ${escapeHtml(product.name)}</strong>
+                        <span>${product.active ? "Active" : "Inactive"}</span>
+                    </div>
+                    <p>Price: ${formatPrice(product.price)} ${escapeHtml(product.currency)}</p>
+                    <p>Stock: ${product.stock} | Category: ${escapeHtml(product.category)}</p>
+                    <div class="admin-actions">
+                        <button class="btn btn-outline edit-product" data-id="${product.id}">EDIT</button>
+                        <button class="btn btn-danger delete-product" data-id="${product.id}">DELETE</button>
+                    </div>
                 </div>
-                <p>Price: ${formatPrice(product.price)} ${escapeHtml(product.currency)}</p>
-                <p>Stock: ${product.stock} | Category: ${escapeHtml(product.category)}</p>
-                <div class="admin-actions">
-                    <button class="btn btn-outline-gold edit-product" data-id="${product.id}">Edit</button>
-                    <button class="btn btn-danger delete-product" data-id="${product.id}">Delete</button>
-                </div>
-            </div>
-        `
+            `
             )
             .join("");
     }
@@ -342,93 +374,77 @@
             price: 0,
             currency: "ETB",
             image: "/assets/watch-placeholder.svg",
-            category: "Watches",
+            category: "Sneakers",
             stock: 0,
             active: true,
+            featured: false,
         };
 
-        const formHtml = `
-        <div class="modal open" id="product-form-modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>${product ? "Edit Product" : "Add Product"}</h3>
-                    <button class="close-modal" data-close="product-form-modal">×</button>
-                </div>
-                <form id="product-form">
-                    <label>Name</label>
-                    <input id="product-name" type="text" value="${escapeHtml(productData.name)}" required />
-                    <label>Description</label>
-                    <textarea id="product-description" rows="3">${escapeHtml(productData.description)}</textarea>
-                    <label>Price</label>
-                    <input id="product-price" type="number" step="0.01" value="${productData.price}" required />
-                    <label>Currency</label>
-                    <input id="product-currency" type="text" value="${escapeHtml(productData.currency)}" required />
-                    <label>Image URL</label>
-                    <input id="product-image" type="text" value="${escapeHtml(productData.image)}" />
-                    <label>Category</label>
-                    <input id="product-category" type="text" value="${escapeHtml(productData.category)}" />
-                    <label>Stock</label>
-                    <input id="product-stock" type="number" value="${productData.stock}" required />
-                    <label class="checkbox-label">
-                        <input id="product-active" type="checkbox" ${productData.active ? "checked" : ""} /> Active
-                    </label>
-                    <div class="modal-actions">
-                        <button type="submit" class="btn btn-gold">${product ? "Update" : "Create"}</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        `;
+        document.getElementById("product-form-title").textContent = product ? "EDIT PRODUCT" : "ADD PRODUCT";
+        document.getElementById("product-name").value = productData.name;
+        document.getElementById("product-description").value = productData.description || "";
+        document.getElementById("product-price").value = productData.price;
+        document.getElementById("product-currency").value = productData.currency || "ETB";
+        document.getElementById("product-image").value = productData.image || "";
+        document.getElementById("product-category").value = productData.category || "Sneakers";
+        document.getElementById("product-stock").value = productData.stock;
+        document.getElementById("product-active").checked = productData.active !== false;
+        document.getElementById("product-featured").checked = productData.featured === true;
+        document.getElementById("product-id").value = product ? product.id : "";
 
-        document.body.insertAdjacentHTML("beforeend", formHtml);
-        document.getElementById("product-form-modal").classList.add("open");
+        openModal("product-form-modal");
+    }
 
-        document.getElementById("product-form").addEventListener("submit", async (event) => {
-            event.preventDefault();
-            const payload = {
-                name: document.getElementById("product-name").value.trim(),
-                description: document.getElementById("product-description").value.trim(),
-                price: Number(document.getElementById("product-price").value),
-                currency: document.getElementById("product-currency").value.trim(),
-                image: document.getElementById("product-image").value.trim(),
-                category: document.getElementById("product-category").value.trim(),
-                stock: Number(document.getElementById("product-stock").value),
-                active: document.getElementById("product-active").checked,
-            };
+    async function handleProductSubmit(event) {
+        event.preventDefault();
+        const id = document.getElementById("product-id").value;
+        const payload = {
+            name: document.getElementById("product-name").value.trim(),
+            description: document.getElementById("product-description").value.trim(),
+            price: Number(document.getElementById("product-price").value),
+            currency: document.getElementById("product-currency").value.trim(),
+            image: document.getElementById("product-image").value.trim(),
+            category: document.getElementById("product-category").value.trim(),
+            stock: Number(document.getElementById("product-stock").value),
+            active: document.getElementById("product-active").checked,
+            featured: document.getElementById("product-featured").checked,
+        };
 
-            try {
-                if (product) {
-                    await TimeAPI.put(`/products/${product.id}`, payload);
-                } else {
-                    await TimeAPI.post("/products", payload);
-                }
-                document.getElementById("product-form-modal").remove();
-                await loadProducts();
-            } catch (error) {
-                alert(error.message);
+        try {
+            if (id) {
+                await TimeAPI.updateProduct(id, payload);
+                showToast("Product updated.", "success");
+            } else {
+                await TimeAPI.createProduct(payload);
+                showToast("Product created.", "success");
             }
-        });
-
-        document.querySelector('[data-close="product-form-modal"]').addEventListener("click", () => {
-            document.getElementById("product-form-modal").remove();
-        });
+            closeModal("product-form-modal");
+            await loadProducts();
+            await loadOverview();
+        } catch (error) {
+            showToast(error.message, "error");
+        }
     }
 
     document.addEventListener("click", (event) => {
-        if (event.target.classList.contains("delete-product")) {
-            const productId = Number(event.target.dataset.id);
-            if (confirm("Delete this product?")) {
-                TimeAPI.delete(`/products/${productId}`)
-                    .then(() => loadProducts())
-                    .catch((error) => alert(error.message));
-            }
+        if (event.target.classList.contains("edit-product")) {
+            const id = Number(event.target.dataset.id);
+            TimeAPI.getProduct(id)
+                .then((response) => openProductForm(response.product))
+                .catch((error) => showToast(error.message, "error"));
         }
 
-        if (event.target.classList.contains("edit-product")) {
-            const productId = Number(event.target.dataset.id);
-            TimeAPI.get(`/products/${productId}`)
-                .then((response) => openProductForm(response.product))
-                .catch((error) => alert(error.message));
+        if (event.target.classList.contains("delete-product")) {
+            const id = Number(event.target.dataset.id);
+            if (confirm("Delete this product?")) {
+                TimeAPI.deleteProduct(id)
+                    .then(() => {
+                        showToast("Product deleted.", "success");
+                        loadProducts();
+                        loadOverview();
+                    })
+                    .catch((error) => showToast(error.message, "error"));
+            }
         }
     });
 
@@ -436,23 +452,29 @@
     // Customers
     // ------------------------------------------------
     async function loadCustomers() {
+        const container = document.getElementById("admin-customers-list");
+        if (!container) return;
+        container.innerHTML = '<div class="loading-skeleton">Loading customers...</div>';
         try {
-            const response = await TimeAPI.get("/users");
+            const response = await TimeAPI.getUsers();
             const users = response.users || [];
-            const container = document.getElementById("admin-customers-list");
+            if (!users.length) {
+                container.innerHTML = `<div class="empty-state">No customers found.</div>`;
+                return;
+            }
             container.innerHTML = users
                 .map(
                     (user) => `
-                <div class="admin-card">
-                    <p><strong>${escapeHtml(user.name)}</strong> (${escapeHtml(user.id)})</p>
-                    <p>Email: ${escapeHtml(user.email)}</p>
-                    <p>Phone: ${escapeHtml(user.phone || "N/A")}</p>
-                </div>
-            `
+                    <div class="admin-card">
+                        <p><strong>${escapeHtml(user.name)}</strong> (${escapeHtml(user.id)})</p>
+                        <p>Email: ${escapeHtml(user.email)}</p>
+                        <p>Phone: ${escapeHtml(user.phone || "N/A")}</p>
+                    </div>
+                `
                 )
                 .join("");
         } catch (error) {
-            document.getElementById("admin-customers-list").innerHTML = `<p class="error-message">${escapeHtml(error.message)}</p>`;
+            container.innerHTML = `<p class="error-message">${escapeHtml(error.message)}</p>`;
         }
     }
 
@@ -460,19 +482,25 @@
     // Chat
     // ------------------------------------------------
     async function loadConversations() {
+        const container = document.getElementById("conversation-list");
+        if (!container) return;
+        container.innerHTML = '<div class="loading-skeleton">Loading conversations...</div>';
         try {
-            const response = await TimeAPI.get("/messages");
+            const response = await TimeAPI.listConversations();
             const conversations = response.conversations || [];
-            const container = document.getElementById("conversation-list");
+            if (!conversations.length) {
+                container.innerHTML = `<div class="empty-state">No conversations.</div>`;
+                return;
+            }
             container.innerHTML = conversations
                 .map(
                     (conv) => `
-                <div class="conversation-item" data-conversation-id="${escapeHtml(conv.conversationId)}">
-                    <strong>${escapeHtml(conv.customerName)} ${conv.unreadCount ? `<span class="unread-badge">${conv.unreadCount}</span>` : ""}</strong>
-                    <small>${escapeHtml(conv.customerEmail)}</small>
-                    <p><small>${escapeHtml(conv.latestMessage?.message?.slice(0, 60) || "")}</small></p>
-                </div>
-            `
+                    <div class="conversation-item" data-conversation-id="${escapeHtml(conv.conversationId)}">
+                        <strong>${escapeHtml(conv.customerName)} ${conv.unreadCount ? `<span class="unread-badge">${conv.unreadCount}</span>` : ""}</strong>
+                        <small>${escapeHtml(conv.customerEmail)}</small>
+                        <small>${escapeHtml(conv.latestMessage?.message?.slice(0, 60) || "")}</small>
+                    </div>
+                `
                 )
                 .join("");
 
@@ -483,7 +511,7 @@
                 });
             });
         } catch (error) {
-            document.getElementById("conversation-list").innerHTML = `<p class="error-message">${escapeHtml(error.message)}</p>`;
+            container.innerHTML = `<p class="error-message">${escapeHtml(error.message)}</p>`;
         }
     }
 
@@ -493,30 +521,34 @@
             item.classList.toggle("active", item.dataset.conversationId === conversationId);
         });
         await loadAdminMessages();
-        await TimeAPI.patch(`/messages/${encodeURIComponent(conversationId)}/read`);
+        await TimeAPI.markMessagesRead(conversationId);
         startAdminPolling();
     }
 
     async function loadAdminMessages() {
         if (!activeConversationId) return;
+        const container = document.getElementById("admin-chat-messages");
+        if (!container) return;
         try {
-            const response = await TimeAPI.get(
-                `/messages/${encodeURIComponent(activeConversationId)}`
-            );
-            const container = document.getElementById("admin-chat-messages");
-            container.innerHTML = response.messages
+            const response = await TimeAPI.getMessages(activeConversationId);
+            const messages = response.messages || [];
+            if (!messages.length) {
+                container.innerHTML = `<div class="empty-state">No messages.</div>`;
+                return;
+            }
+            container.innerHTML = messages
                 .map(
                     (msg) => `
-                <div class="chat-msg ${escapeHtml(msg.sender)}">
-                    <small>${escapeHtml(msg.sender)} · ${formatDate(msg.timestamp)}</small>
-                    <div>${escapeHtml(msg.message)}</div>
-                </div>
-            `
+                    <div class="chat-msg ${escapeHtml(msg.sender)}">
+                        <small>${escapeHtml(msg.sender)} · ${formatTime(msg.timestamp)}</small>
+                        <div>${escapeHtml(msg.message)}</div>
+                    </div>
+                `
                 )
                 .join("");
             container.scrollTop = container.scrollHeight;
         } catch (error) {
-            document.getElementById("admin-chat-messages").innerHTML = `<p class="error-message">${escapeHtml(error.message)}</p>`;
+            container.innerHTML = `<p class="error-message">${escapeHtml(error.message)}</p>`;
         }
     }
 
@@ -527,7 +559,7 @@
         if (!message || !activeConversationId) return;
 
         try {
-            await TimeAPI.post("/messages", {
+            await TimeAPI.sendMessage({
                 conversationId: activeConversationId,
                 sender: "admin",
                 message,
@@ -535,7 +567,7 @@
             input.value = "";
             await loadAdminMessages();
         } catch (error) {
-            alert(error.message);
+            showToast(error.message, "error");
         }
     }
 
@@ -555,21 +587,37 @@
     // Settings
     // ------------------------------------------------
     async function loadSettings() {
+        const container = document.getElementById("admin-status");
+        if (!container) return;
         try {
             const health = await TimeAPI.get("/health");
-            const container = document.getElementById("admin-status");
             container.innerHTML = `<pre>${escapeHtml(JSON.stringify(health, null, 2))}</pre>`;
         } catch (error) {
-            document.getElementById("admin-status").innerHTML = `<p class="error-message">${escapeHtml(error.message)}</p>`;
+            container.innerHTML = `<p class="error-message">${escapeHtml(error.message)}</p>`;
         }
     }
-
-    // Fix tab settings loading
-    document.querySelector('[data-tab="settings"]').addEventListener("click", loadSettings);
 
     // ------------------------------------------------
     // Helpers
     // ------------------------------------------------
+    function openModal(id) {
+        document.getElementById(id)?.classList.add("open");
+    }
+
+    function closeModal(id) {
+        document.getElementById(id)?.classList.remove("open");
+    }
+
+    function showToast(message, type = "info") {
+        const container = document.getElementById("toast-container");
+        if (!container) return;
+        const toast = document.createElement("div");
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+    }
+
     function formatPrice(value) {
         return Number(value).toLocaleString();
     }
@@ -577,7 +625,16 @@
     function formatDate(isoString) {
         if (!isoString) return "";
         try {
-            return new Date(isoString).toLocaleString();
+            return new Date(isoString).toLocaleDateString();
+        } catch (error) {
+            return isoString;
+        }
+    }
+
+    function formatTime(isoString) {
+        if (!isoString) return "";
+        try {
+            return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         } catch (error) {
             return isoString;
         }

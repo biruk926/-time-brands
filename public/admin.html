@@ -4,98 +4,185 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TIME BRAND Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body class="admin-body">
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- Admin Login -->
     <div id="admin-login" class="admin-login">
         <div class="admin-login-box">
-            <h1>TIME <span>BRAND</span> Admin</h1>
+            <h1 class="admin-login-title">TIME <span>BRAND</span> ADMIN</h1>
             <form id="admin-login-form">
-                <label for="admin-password">Admin Password</label>
-                <input id="admin-password" type="password" required autocomplete="current-password" />
+                <div class="form-group">
+                    <label for="admin-password">Password</label>
+                    <input type="password" id="admin-password" required autocomplete="current-password" />
+                </div>
                 <div id="admin-login-error" class="error-message" role="alert"></div>
-                <button type="submit" class="btn btn-gold">Login</button>
+                <button type="submit" class="btn btn-primary btn-block">LOGIN</button>
             </form>
         </div>
     </div>
 
+    <!-- Admin Dashboard -->
     <div id="admin-dashboard" hidden>
-        <header class="site-header admin-header">
-            <div class="container header-inner">
-                <span class="logo">TIME <span>BRAND</span> Admin</span>
-                <button id="admin-logout" class="btn btn-outline-gold">Logout</button>
-            </div>
-        </header>
-
         <div class="admin-layout">
-            <nav class="admin-tabs" aria-label="Admin sections">
-                <button class="admin-tab active" data-tab="overview">Overview</button>
-                <button class="admin-tab" data-tab="orders">Orders</button>
-                <button class="admin-tab" data-tab="products">Products</button>
-                <button class="admin-tab" data-tab="customers">Customers</button>
-                <button class="admin-tab" data-tab="chat">Chat</button>
-                <button class="admin-tab" data-tab="settings">Settings</button>
-            </nav>
+            <!-- Sidebar -->
+            <aside class="admin-sidebar" id="admin-sidebar">
+                <div class="admin-sidebar-header">
+                    <span class="logo-time">TIME</span> <span class="logo-brand">BRAND</span>
+                    <span class="admin-badge">ADMIN</span>
+                </div>
+                <nav class="admin-nav" aria-label="Admin navigation">
+                    <button class="admin-nav-btn active" data-tab="overview">Overview</button>
+                    <button class="admin-nav-btn" data-tab="orders">Orders</button>
+                    <button class="admin-nav-btn" data-tab="products">Products</button>
+                    <button class="admin-nav-btn" data-tab="customers">Customers</button>
+                    <button class="admin-nav-btn" data-tab="chat">Messages</button>
+                    <button class="admin-nav-btn" data-tab="settings">Settings</button>
+                    <button id="admin-logout" class="admin-nav-btn admin-logout">Logout</button>
+                </nav>
+            </aside>
 
-            <main class="admin-content">
-                <section id="tab-overview" class="tab-panel active">
-                    <h2>Overview</h2>
-                    <div id="overview-stats" class="stats-grid"></div>
-                </section>
+            <!-- Main Content -->
+            <main class="admin-main">
+                <header class="admin-topbar">
+                    <button id="admin-sidebar-toggle" class="admin-sidebar-toggle" aria-label="Toggle sidebar">☰</button>
+                    <h1 class="admin-page-title" id="admin-page-title">Overview</h1>
+                </header>
 
-                <section id="tab-orders" class="tab-panel">
-                    <h2>Orders</h2>
-                    <div id="admin-orders-list" class="admin-list"></div>
-                </section>
+                <div class="admin-content">
+                    <!-- Overview Tab -->
+                    <section id="tab-overview" class="tab-panel active">
+                        <div class="stats-grid" id="overview-stats"></div>
+                    </section>
 
-                <section id="tab-products" class="tab-panel">
-                    <h2>Products</h2>
-                    <button id="add-product-btn" class="btn btn-gold">Add Product</button>
-                    <div id="admin-products-list" class="admin-list"></div>
-                </section>
-
-                <section id="tab-customers" class="tab-panel">
-                    <h2>Customers</h2>
-                    <div id="admin-customers-list" class="admin-list"></div>
-                </section>
-
-                <section id="tab-chat" class="tab-panel">
-                    <h2>Customer Conversations</h2>
-                    <div class="chat-admin-layout">
-                        <div id="conversation-list" class="conversation-list"></div>
-                        <div class="chat-window">
-                            <div id="admin-chat-messages" class="chat-messages" aria-live="polite"></div>
-                            <form id="admin-chat-form" class="chat-form">
-                                <label for="admin-chat-input" class="sr-only">Message</label>
-                                <input id="admin-chat-input" type="text" placeholder="Type your reply..." required />
-                                <button type="submit" class="btn btn-gold">Send</button>
-                            </form>
+                    <!-- Orders Tab -->
+                    <section id="tab-orders" class="tab-panel">
+                        <div class="admin-list-header">
+                            <h2>Orders</h2>
                         </div>
-                    </div>
-                </section>
+                        <div id="admin-orders-list" class="admin-list"></div>
+                    </section>
 
-                <section id="tab-settings" class="tab-panel">
-                    <h2>Settings</h2>
-                    <p>Environment information and status.</p>
-                    <div id="admin-status"></div>
-                </section>
+                    <!-- Products Tab -->
+                    <section id="tab-products" class="tab-panel">
+                        <div class="admin-list-header">
+                            <h2>Products</h2>
+                            <button id="add-product-btn" class="btn btn-primary">ADD PRODUCT</button>
+                        </div>
+                        <div id="admin-products-list" class="admin-list"></div>
+                    </section>
+
+                    <!-- Customers Tab -->
+                    <section id="tab-customers" class="tab-panel">
+                        <div class="admin-list-header">
+                            <h2>Customers</h2>
+                        </div>
+                        <div id="admin-customers-list" class="admin-list"></div>
+                    </section>
+
+                    <!-- Chat Tab -->
+                    <section id="tab-chat" class="tab-panel">
+                        <div class="chat-admin-layout">
+                            <div id="conversation-list" class="conversation-list"></div>
+                            <div class="chat-window">
+                                <div id="admin-chat-messages" class="chat-messages"></div>
+                                <form id="admin-chat-form" class="chat-form">
+                                    <input type="text" id="admin-chat-input" placeholder="Type your reply..." required />
+                                    <button type="submit" class="btn btn-primary">SEND</button>
+                                </form>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Settings Tab -->
+                    <section id="tab-settings" class="tab-panel">
+                        <h2>Settings</h2>
+                        <div id="admin-status" class="admin-status"></div>
+                    </section>
+                </div>
             </main>
         </div>
     </div>
 
     <!-- Reject Modal -->
     <div id="reject-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="reject-title">
+        <div class="modal-overlay" data-close-modal></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="reject-title">Reject Order</h3>
-                <button class="close-modal" data-close="reject-modal" aria-label="Close reject modal">×</button>
+                <h3 id="reject-title">REJECT ORDER</h3>
+                <button class="close-modal" data-close-modal aria-label="Close reject modal">×</button>
             </div>
             <form id="reject-form">
-                <label for="reject-reason">Rejection Reason</label>
-                <textarea id="reject-reason" rows="3" required placeholder="Payment could not be verified"></textarea>
-                <input id="reject-order-id" type="hidden" />
+                <div class="form-group">
+                    <label for="reject-reason">Rejection Reason</label>
+                    <textarea id="reject-reason" rows="3" required placeholder="Payment could not be verified"></textarea>
+                </div>
+                <input type="hidden" id="reject-order-id" />
                 <div class="modal-actions">
-                    <button type="submit" class="btn btn-danger">Reject Order</button>
+                    <button type="submit" class="btn btn-danger">REJECT ORDER</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Product Form Modal -->
+    <div id="product-form-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="product-form-title">
+        <div class="modal-overlay" data-close-modal></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="product-form-title">ADD PRODUCT</h3>
+                <button class="close-modal" data-close-modal aria-label="Close product form">×</button>
+            </div>
+            <form id="product-form">
+                <div class="form-group">
+                    <label for="product-name">Name</label>
+                    <input type="text" id="product-name" required />
+                </div>
+                <div class="form-group">
+                    <label for="product-description">Description</label>
+                    <textarea id="product-description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="product-price">Price (ETB)</label>
+                    <input type="number" id="product-price" step="0.01" required />
+                </div>
+                <div class="form-group">
+                    <label for="product-currency">Currency</label>
+                    <input type="text" id="product-currency" value="ETB" required />
+                </div>
+                <div class="form-group">
+                    <label for="product-image">Image URL</label>
+                    <input type="text" id="product-image" placeholder="/assets/watch-placeholder.svg" />
+                </div>
+                <div class="form-group">
+                    <label for="product-category">Category</label>
+                    <input type="text" id="product-category" value="Sneakers" />
+                </div>
+                <div class="form-group">
+                    <label for="product-stock">Stock</label>
+                    <input type="number" id="product-stock" required />
+                </div>
+                <div class="form-group checkbox-group">
+                    <label for="product-featured" class="checkbox-label">
+                        <input type="checkbox" id="product-featured" />
+                        Featured
+                    </label>
+                </div>
+                <div class="form-group checkbox-group">
+                    <label for="product-active" class="checkbox-label">
+                        <input type="checkbox" id="product-active" checked />
+                        Active
+                    </label>
+                </div>
+                <input type="hidden" id="product-id" />
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">SAVE</button>
                 </div>
             </form>
         </div>
