@@ -149,6 +149,9 @@
         ]);
     }
 
+    // Expose loadAllData globally so the login button can call it
+    window.loadAllAdminData = loadAllData;
+
     async function loadOverview() {
         try {
             const [productsRes, ordersRes, usersRes] = await Promise.all([
@@ -650,3 +653,33 @@
             .replace(/'/g, "&#039;");
     }
 })();
+
+// Global function for login button onclick
+window.adminLoginClicked = async function () {
+    const password = document.getElementById("admin-password").value;
+    const errorBox = document.getElementById("admin-login-error");
+    errorBox.textContent = "";
+
+    if (!password) {
+        errorBox.textContent = "Please enter a password.";
+        return;
+    }
+
+    try {
+        const response = await TimeAPI.adminLogin(password);
+        if (response.success) {
+            document.getElementById("admin-login").hidden = true;
+            document.getElementById("admin-dashboard").hidden = false;
+            // Load admin data
+            if (typeof window.loadAllAdminData === "function") {
+                await window.loadAllAdminData();
+            } else {
+                location.reload();
+            }
+        } else {
+            errorBox.textContent = response.error || "Login failed.";
+        }
+    } catch (error) {
+        errorBox.textContent = error.message;
+    }
+};

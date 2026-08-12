@@ -17,13 +17,14 @@
     <div id="admin-login" class="admin-login">
         <div class="admin-login-box">
             <h1 class="admin-login-title">TIME <span>BRAND</span> ADMIN</h1>
-            <form id="admin-login-form">
+            <form id="admin-login-form" onsubmit="return false;">
                 <div class="form-group">
                     <label for="admin-password">Password</label>
                     <input type="password" id="admin-password" required autocomplete="current-password" />
                 </div>
                 <div id="admin-login-error" class="error-message" role="alert"></div>
-                <button type="submit" class="btn btn-primary btn-block">LOGIN</button>
+                <button type="button" class="btn btn-primary btn-block" onclick="adminLoginClicked()">LOGIN</button>
+                <form id="admin-login-form" onsubmit="return false;"></form>
             </form>
         </div>
     </div>
