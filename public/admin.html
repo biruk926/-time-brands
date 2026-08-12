@@ -190,5 +190,16 @@
 
     <script src="/js/api.js"></script>
     <script src="/js/admin.js"></script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("Admin page loaded");
+    console.log("adminLoginClicked type:", typeof adminLoginClicked);
+    console.log("TimeAPI type:", typeof TimeAPI);
+    document.getElementById('admin-login-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        alert('Form submitted');
+    });
+});
+</script>
 </body>
 </html>
