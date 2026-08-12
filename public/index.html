@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TIME BRAND | Premium Watches</title>
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="/" class="logo">TIME <span>BRAND</span></a>
+            <nav class="main-nav" aria-label="Main navigation">
+                <button class="nav-link" data-scroll="products-section">Products</button>
+                <button class="nav-link" data-scroll="orders-section">Orders</button>
+                <button id="chat-btn" class="nav-link" aria-label="Open customer chat">Chat</button>
+                <button id="account-btn" class="nav-link" aria-label="Open account settings">Account</button>
+                <button id="cart-btn" class="btn btn-gold" aria-label="Open cart">
+                    Cart <span id="cart-count">0</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container hero-inner">
+                <div>
+                    <h1>Timeless Precision.</h1>
+                    <p>Premium watches crafted for those who value every second.</p>
+                    <button class="btn btn-outline-gold" data-scroll="products-section">Shop Now</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="products-section" class="section">
+            <div class="container">
+                <h2>Our Collection</h2>
+                <div id="product-grid" class="product-grid" aria-live="polite"></div>
+            </div>
+        </section>
+
+        <section id="orders-section" class="section">
+            <div class="container">
+                <h2>Your Orders</h2>
+                <div id="order-history" aria-live="polite"></div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>© 2026 TIME BRAND. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Cart Modal -->
+    <div id="cart-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="cart-title">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="cart-title">Your Cart</h3>
+                <button class="close-modal" data-close="cart-modal" aria-label="Close cart">×</button>
+            </div>
+            <div id="cart-items" class="cart-items"></div>
+            <div class="cart-total">
+                <span>Estimated Total</span>
+                <strong id="cart-total">0 ETB</strong>
+            </div>
+            <div class="modal-actions">
+                <button id="checkout-btn" class="btn btn-gold">Checkout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="checkout-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="checkout-title">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="checkout-title">Checkout</h3>
+                <button class="close-modal" data-close="checkout-modal" aria-label="Close checkout">×</button>
+            </div>
+            <div id="checkout-summary" class="checkout-summary"></div>
+            <form id="checkout-form">
+                <label for="shipping-address">Shipping Address</label>
+                <textarea id="shipping-address" rows="3" required placeholder="Enter your full delivery address"></textarea>
+                <div id="checkout-error" class="error-message" role="alert"></div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-gold">Place Order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Account Modal -->
+    <div id="account-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="account-title">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="account-title">Your Account</h3>
+                <button class="close-modal" data-close="account-modal" aria-label="Close account">×</button>
+            </div>
+            <form id="account-form">
+                <label for="account-name">Full Name</label>
+                <input id="account-name" type="text" required />
+
+                <label for="account-email">Email Address</label>
+                <input id="account-email" type="email" required />
+
+                <label for="account-phone">Phone Number</label>
+                <input id="account-phone" type="tel" placeholder="094..." />
+
+                <label class="checkbox-label">
+                    <input id="account-register" type="checkbox" />
+                    Register as a returning customer
+                </label>
+
+                <div id="account-error" class="error-message" role="alert"></div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-gold">Continue</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Chat Modal -->
+    <div id="chat-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="chat-title">
+        <div class="modal-content chat-modal">
+            <div class="modal-header">
+                <h3 id="chat-title">TIME BRAND Support</h3>
+                <button class="close-modal" data-close="chat-modal" aria-label="Close chat">×</button>
+            </div>
+            <div id="chat-messages" class="chat-messages" aria-live="polite"></div>
+            <form id="chat-form" class="chat-form">
+                <label for="chat-input" class="sr-only">Message</label>
+                <input id="chat-input" type="text" placeholder="Type your message..." required />
+                <button type="submit" class="btn btn-gold">Send</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/chat.js"></script>
+    <script src="/js/store.js"></script>
+</body>
+</html>
