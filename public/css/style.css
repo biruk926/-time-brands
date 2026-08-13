@@ -1,37 +1,27 @@
 /* ============================================================
-   TIME BRAND Premium Frontend Styles
-   Color palette:
-   --smoky-black: #11120D;
-   --olive-drab: #565449;
-   --bone: #D8CFBC;
-   --floral-white: #FFFBF4;
+   TIME BRAND - Complete Premium Styles
    ============================================================ */
 
 :root {
-    --smoky-black: #11120D;
-    --olive-drab: #565449;
-    --bone: #D8CFBC;
-    --floral-white: #FFFBF4;
-
-    --bg: var(--smoky-black);
-    --bg-light: #181814;
-    --surface: #1D1D18;
-    --surface-2: #24231E;
-    --border: rgba(216, 207, 188, 0.15);
-    --text: var(--floral-white);
-    --text-secondary: var(--bone);
-    --text-muted: #969286;
-    --accent: var(--bone);
-    --accent-dark: var(--olive-drab);
-
-    --danger: #dc3545;
-    --success: #2e8b57;
-    --radius-sm: 6px;
-    --radius-md: 10px;
-    --radius-lg: 16px;
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.5);
+    --bg: #0B0B0A;
+    --bg-light: #111210;
+    --surface: #171815;
+    --surface-2: #1D1E1A;
+    --border: #292A25;
+    --text: #F5F1E8;
+    --text-secondary: #A7A59B;
+    --text-muted: #6F6D65;
+    --gold: #C8A951;
+    --gold-hover: #E0C56A;
+    --success: #7D9A72;
+    --danger: #B96A62;
+    --warning: #B49A58;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+    --shadow-md: 0 8px 24px rgba(0,0,0,0.4);
+    --shadow-lg: 0 16px 48px rgba(0,0,0,0.5);
     --transition: 0.2s ease;
     --font-heading: 'Playfair Display', Georgia, serif;
     --font-body: 'Inter', 'Segoe UI', sans-serif;
@@ -75,14 +65,15 @@ button {
     color: inherit;
 }
 
+input, textarea, select {
+    font-family: inherit;
+}
+
 .container {
     width: min(1200px, 92%);
     margin: 0 auto;
 }
 
-/* ============================================================
-   Typography
-   ============================================================ */
 h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
     font-weight: 600;
@@ -119,29 +110,40 @@ h1, h2, h3, h4, h5, h6 {
     text-transform: uppercase;
     cursor: pointer;
     white-space: nowrap;
+    gap: 0.5rem;
+}
+
+.btn:hover {
+    opacity: 0.9;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .btn-primary {
-    background: var(--accent);
+    background: var(--gold);
     color: var(--bg);
-    border-color: var(--accent);
+    border-color: var(--gold);
 }
 
 .btn-primary:hover {
-    background: #e6ddcf;
-    border-color: #e6ddcf;
-    box-shadow: 0 4px 12px rgba(216, 207, 188, 0.3);
+    background: var(--gold-hover);
+    border-color: var(--gold-hover);
+    opacity: 1;
 }
 
 .btn-outline {
     background: transparent;
-    color: var(--accent);
-    border-color: var(--accent);
+    color: var(--text-secondary);
+    border-color: var(--border);
 }
 
 .btn-outline:hover {
-    background: rgba(216, 207, 188, 0.1);
-    border-color: #e6ddcf;
+    color: var(--text);
+    border-color: var(--text-secondary);
+    opacity: 1;
 }
 
 .btn-danger {
@@ -151,12 +153,18 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-danger:hover {
-    background: #b52d3b;
-    border-color: #b52d3b;
+    background: #a05a52;
+    border-color: #a05a52;
+    opacity: 1;
 }
 
 .btn-block {
     width: 100%;
+}
+
+.btn-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
 }
 
 /* ============================================================
@@ -168,16 +176,15 @@ h1, h2, h3, h4, h5, h6 {
     left: 0;
     right: 0;
     z-index: 100;
-    background: rgba(17, 18, 13, 0.85);
+    background: rgba(11, 11, 10, 0.9);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
-    transition: background 0.3s ease, border-color 0.3s ease;
+    transition: background 0.3s ease;
 }
 
 .site-header.scrolled {
-    background: rgba(17, 18, 13, 0.98);
-    border-bottom-color: rgba(216, 207, 188, 0.3);
+    background: rgba(11, 11, 10, 0.98);
 }
 
 .header-inner {
@@ -186,6 +193,7 @@ h1, h2, h3, h4, h5, h6 {
     justify-content: space-between;
     height: 70px;
     position: relative;
+    gap: 1rem;
 }
 
 .logo {
@@ -197,6 +205,7 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
     letter-spacing: 0.08em;
     color: var(--text);
+    flex-shrink: 0;
 }
 
 .logo-time {
@@ -204,13 +213,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .logo-brand {
-    color: var(--accent);
+    color: var(--gold);
 }
 
 .main-nav {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1.2rem;
 }
 
 .nav-link {
@@ -220,13 +229,13 @@ h1, h2, h3, h4, h5, h6 {
     letter-spacing: 0.05em;
     color: var(--text-secondary);
     padding: 0.5rem 0;
-    transition: color 0.2s ease;
+    transition: color 0.2s;
     background: none;
     border: none;
 }
 
 .nav-link:hover {
-    color: var(--accent);
+    color: var(--gold);
 }
 
 .nav-link::after {
@@ -236,8 +245,8 @@ h1, h2, h3, h4, h5, h6 {
     left: 0;
     width: 0;
     height: 2px;
-    background: var(--accent);
-    transition: width 0.25s ease;
+    background: var(--gold);
+    transition: width 0.25s;
 }
 
 .nav-link:hover::after {
@@ -258,7 +267,7 @@ h1, h2, h3, h4, h5, h6 {
     position: absolute;
     top: -6px;
     right: -10px;
-    background: var(--accent);
+    background: var(--gold);
     color: var(--bg);
     border-radius: 50%;
     width: 20px;
@@ -295,7 +304,7 @@ h1, h2, h3, h4, h5, h6 {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(17, 18, 13, 0.98);
+    background: rgba(11, 11, 10, 0.98);
     z-index: 99;
     display: none;
     flex-direction: column;
@@ -344,7 +353,7 @@ h1, h2, h3, h4, h5, h6 {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(17, 18, 13, 0.95);
+    background: rgba(11, 11, 10, 0.95);
     z-index: 150;
     display: none;
     align-items: flex-start;
@@ -385,7 +394,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 #search-input:focus {
-    border-color: var(--accent);
+    border-color: var(--gold);
 }
 
 .search-results {
@@ -433,8 +442,8 @@ h1, h2, h3, h4, h5, h6 {
 .hero-bg {
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at 30% 40%, rgba(216, 207, 188, 0.08), transparent 50%),
-                radial-gradient(circle at 80% 70%, rgba(86, 84, 73, 0.3), transparent 60%),
+    background: radial-gradient(circle at 30% 40%, rgba(200, 169, 81, 0.08), transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(200, 169, 81, 0.05), transparent 40%),
                 var(--bg);
 }
 
@@ -457,7 +466,7 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 0.9rem;
     letter-spacing: 0.3em;
     text-transform: uppercase;
-    color: var(--accent);
+    color: var(--gold);
     margin-bottom: 1rem;
 }
 
@@ -497,7 +506,7 @@ h1, h2, h3, h4, h5, h6 {
 .hero-watch-img {
     width: min(500px, 90%);
     height: auto;
-    filter: drop-shadow(0 30px 40px rgba(0,0,0,0.6));
+    filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.6));
     object-fit: contain;
     animation: float 6s ease-in-out infinite;
 }
@@ -506,7 +515,7 @@ h1, h2, h3, h4, h5, h6 {
     position: absolute;
     width: 400px;
     height: 400px;
-    background: radial-gradient(circle, rgba(216, 207, 188, 0.15), transparent 70%);
+    background: radial-gradient(circle, rgba(200, 169, 81, 0.15), transparent 70%);
     border-radius: 50%;
     z-index: -1;
     animation: pulse 4s ease-in-out infinite;
@@ -533,7 +542,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ============================================================
-   Sections General
+   Sections
    ============================================================ */
 .section {
     padding: 6rem 0;
@@ -544,13 +553,25 @@ h1, h2, h3, h4, h5, h6 {
     margin-bottom: 3rem;
 }
 
-/* ============================================================
-   Collection / Product Grid
-   ============================================================ */
 .shop-section {
     background: var(--bg-light);
 }
 
+.new-arrivals-section {
+    background: var(--bg);
+}
+
+.limited-section {
+    background: var(--bg-light);
+}
+
+.about-section {
+    background: var(--bg);
+}
+
+/* ============================================================
+   Filter Bar
+   ============================================================ */
 .filter-bar {
     display: flex;
     gap: 0.5rem;
@@ -573,11 +594,14 @@ h1, h2, h3, h4, h5, h6 {
 
 .filter-btn:hover,
 .filter-btn.active {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: rgba(216, 207, 188, 0.05);
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(200, 169, 81, 0.05);
 }
 
+/* ============================================================
+   Product Grid
+   ============================================================ */
 .product-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -589,7 +613,7 @@ h1, h2, h3, h4, h5, h6 {
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     overflow: hidden;
-    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s;
+    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
     display: flex;
     flex-direction: column;
     cursor: pointer;
@@ -599,7 +623,7 @@ h1, h2, h3, h4, h5, h6 {
 .product-card:hover {
     transform: translateY(-5px);
     box-shadow: var(--shadow-md);
-    border-color: rgba(216, 207, 188, 0.4);
+    border-color: rgba(200, 169, 81, 0.4);
 }
 
 .product-image-wrapper {
@@ -613,7 +637,7 @@ h1, h2, h3, h4, h5, h6 {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s;
     padding: 1rem;
 }
 
@@ -633,7 +657,7 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 0.7rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--accent);
+    color: var(--gold);
 }
 
 .product-name {
@@ -652,7 +676,7 @@ h1, h2, h3, h4, h5, h6 {
 .product-price {
     font-weight: 700;
     font-size: 1.1rem;
-    color: var(--accent);
+    color: var(--gold);
 }
 
 .product-stock {
@@ -662,7 +686,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .add-to-cart-btn {
     margin-top: 0.5rem;
-    background: var(--accent);
+    background: var(--gold);
     color: var(--bg);
     border: none;
     padding: 0.7rem;
@@ -675,27 +699,18 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .add-to-cart-btn:hover {
-    background: #e6ddcf;
+    background: var(--gold-hover);
 }
 
-/* ============================================================
-   New Arrivals & Limited Sections
-   ============================================================ */
-.new-arrivals-section {
-    background: var(--bg);
-}
-
-.limited-section {
-    background: var(--bg-light);
+.add-to-cart-btn:disabled {
+    background: var(--surface-2);
+    color: var(--text-muted);
+    cursor: not-allowed;
 }
 
 /* ============================================================
    About Section
    ============================================================ */
-.about-section {
-    background: var(--bg);
-}
-
 .about-inner {
     display: flex;
     align-items: center;
@@ -724,7 +739,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .about-image img {
     width: min(400px, 100%);
-    filter: drop-shadow(0 20px 30px rgba(0,0,0,0.5));
+    filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.5));
 }
 
 /* ============================================================
@@ -749,7 +764,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .footer-links h4 {
-    color: var(--accent);
+    color: var(--gold);
     margin-bottom: 1rem;
     font-size: 1rem;
 }
@@ -759,10 +774,13 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--text-secondary);
     margin-bottom: 0.5rem;
     transition: color 0.2s;
+    background: none;
+    border: none;
+    font-size: 0.9rem;
 }
 
 .footer-links button:hover {
-    color: var(--accent);
+    color: var(--gold);
 }
 
 .footer-bottom {
@@ -790,7 +808,7 @@ h1, h2, h3, h4, h5, h6 {
 .drawer-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0, 0, 0, 0.5);
     opacity: 0;
     transition: opacity 0.3s;
     pointer-events: none;
@@ -812,7 +830,7 @@ h1, h2, h3, h4, h5, h6 {
     background: var(--surface);
     border-left: 1px solid var(--border);
     transform: translateX(100%);
-    transition: transform 0.3s ease;
+    transition: transform 0.3s;
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -881,7 +899,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .cart-item-price {
-    color: var(--accent);
+    color: var(--gold);
     font-size: 0.85rem;
 }
 
@@ -906,8 +924,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .cart-qty button:hover {
-    border-color: var(--accent);
-    color: var(--accent);
+    border-color: var(--gold);
+    color: var(--gold);
 }
 
 .cart-remove {
@@ -932,7 +950,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .cart-subtotal strong {
-    color: var(--accent);
+    color: var(--gold);
 }
 
 /* ============================================================
@@ -959,7 +977,7 @@ h1, h2, h3, h4, h5, h6 {
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.7);
+    background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(5px);
 }
 
@@ -1011,6 +1029,7 @@ h1, h2, h3, h4, h5, h6 {
     justify-content: flex-end;
     gap: 1rem;
     margin-top: 1.5rem;
+    flex-wrap: wrap;
 }
 
 /* ============================================================
@@ -1045,7 +1064,7 @@ h1, h2, h3, h4, h5, h6 {
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
-    border-color: var(--accent);
+    border-color: var(--gold);
 }
 
 .checkbox-group {
@@ -1058,6 +1077,8 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
     gap: 0.5rem;
     cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
 }
 
 .checkbox-label input[type="checkbox"] {
@@ -1071,6 +1092,12 @@ h1, h2, h3, h4, h5, h6 {
     margin-top: 0.5rem;
 }
 
+.success-message {
+    color: var(--success);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
 /* ============================================================
    Checkout Steps
    ============================================================ */
@@ -1080,6 +1107,7 @@ h1, h2, h3, h4, h5, h6 {
     margin-bottom: 2rem;
     border-bottom: 1px solid var(--border);
     padding-bottom: 1rem;
+    flex-wrap: wrap;
 }
 
 .step {
@@ -1094,8 +1122,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .step.active {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
+    color: var(--gold);
+    border-bottom-color: var(--gold);
 }
 
 .checkout-step {
@@ -1106,6 +1134,103 @@ h1, h2, h3, h4, h5, h6 {
     display: block;
 }
 
+/* ============================================================
+   Payment Options
+   ============================================================ */
+.payment-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.payment-option {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+}
+
+.payment-option:hover {
+    border-color: var(--gold);
+}
+
+.payment-option input[type="radio"] {
+    margin-top: 0.3rem;
+}
+
+.payment-option-content {
+    flex: 1;
+}
+
+.payment-option-content strong {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-size: 1.1rem;
+}
+
+.payment-option-content p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.payment-account {
+    color: var(--gold);
+    font-weight: 600;
+}
+
+.copy-btn {
+    padding: 0.3rem 0.8rem;
+    font-size: 0.75rem;
+}
+
+.payment-instructions {
+    background: var(--surface-2);
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 1.5rem;
+}
+
+.payment-instructions h4 {
+    margin-bottom: 0.5rem;
+    color: var(--gold);
+    font-size: 1rem;
+}
+
+.payment-instructions ol {
+    padding-left: 1.5rem;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.payment-instructions li {
+    margin-bottom: 0.3rem;
+}
+
+.payment-notice {
+    color: var(--warning);
+    font-size: 0.9rem;
+    margin-top: 1rem;
+}
+
+.payment-proof-preview {
+    margin-top: 0.5rem;
+}
+
+.payment-proof-preview img {
+    max-width: 200px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+}
+
+/* ============================================================
+   Checkout Summary
+   ============================================================ */
 .checkout-summary {
     margin-bottom: 1rem;
 }
@@ -1123,7 +1248,7 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
     font-size: 1.2rem;
     margin-top: 1rem;
-    color: var(--accent);
+    color: var(--gold);
 }
 
 /* ============================================================
@@ -1155,7 +1280,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .product-detail-category {
-    color: var(--accent);
+    color: var(--gold);
     letter-spacing: 0.2em;
     text-transform: uppercase;
     font-size: 0.8rem;
@@ -1165,6 +1290,7 @@ h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
     font-size: 1.8rem;
     margin: 0.5rem 0 1rem;
+    color: var(--text);
 }
 
 .product-detail-description {
@@ -1175,7 +1301,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .product-detail-price {
     font-size: 1.5rem;
-    color: var(--accent);
+    color: var(--gold);
     font-weight: 700;
     margin-bottom: 0.5rem;
 }
@@ -1224,6 +1350,14 @@ h1, h2, h3, h4, h5, h6 {
     border-left: 3px solid var(--danger);
 }
 
+.toast.warning {
+    border-left: 3px solid var(--warning);
+}
+
+.toast.info {
+    border-left: 3px solid var(--gold);
+}
+
 @keyframes slideInRight {
     from { transform: translateX(100%); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
@@ -1241,7 +1375,7 @@ h1, h2, h3, h4, h5, h6 {
     bottom: 30px;
     right: 30px;
     z-index: 150;
-    background: var(--accent);
+    background: var(--gold);
     color: var(--bg);
     border: none;
     border-radius: 50px;
@@ -1252,7 +1386,7 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
     letter-spacing: 0.05em;
     cursor: pointer;
-    box-shadow: 0 8px 20px rgba(216, 207, 188, 0.3);
+    box-shadow: 0 8px 20px rgba(200, 169, 81, 0.3);
     transition: transform 0.2s;
 }
 
@@ -1282,14 +1416,14 @@ h1, h2, h3, h4, h5, h6 {
 
 .chat-msg.user {
     align-self: flex-end;
-    background: rgba(216, 207, 188, 0.15);
-    border-color: var(--accent);
+    background: rgba(200, 169, 81, 0.15);
+    border-color: var(--gold);
 }
 
 .chat-msg.admin {
     align-self: flex-start;
     background: var(--surface);
-    border-color: var(--accent-dark);
+    border-color: var(--border);
 }
 
 .chat-msg small {
@@ -1320,7 +1454,26 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .chat-form input:focus {
-    border-color: var(--accent);
+    border-color: var(--gold);
+}
+
+/* ============================================================
+   Empty States & Loading
+   ============================================================ */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.8;
+}
+
+.loading-skeleton {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    animation: pulse 1.5s ease-in-out infinite;
 }
 
 /* ============================================================
@@ -1336,7 +1489,7 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
     justify-content: center;
     padding: 1rem;
-    background: radial-gradient(circle at center, rgba(216, 207, 188, 0.05), var(--bg));
+    background: radial-gradient(circle at center, rgba(200, 169, 81, 0.05), var(--bg));
 }
 
 .admin-login-box {
@@ -1352,10 +1505,11 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 2rem;
     margin-bottom: 2rem;
     letter-spacing: 0.05em;
+    color: var(--text);
 }
 
 .admin-login-title span {
-    color: var(--accent);
+    color: var(--gold);
 }
 
 .admin-layout {
@@ -1374,7 +1528,7 @@ h1, h2, h3, h4, h5, h6 {
     bottom: 0;
     left: 0;
     z-index: 50;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s;
 }
 
 .admin-sidebar-header {
@@ -1389,11 +1543,12 @@ h1, h2, h3, h4, h5, h6 {
 
 .admin-badge {
     font-size: 0.7rem;
-    background: var(--accent);
+    background: var(--gold);
     color: var(--bg);
     padding: 0.2rem 0.5rem;
     border-radius: 4px;
     margin-left: auto;
+    font-weight: 700;
 }
 
 .admin-nav {
@@ -1420,13 +1575,13 @@ h1, h2, h3, h4, h5, h6 {
 .admin-nav-btn:hover {
     background: var(--surface-2);
     color: var(--text);
-    border-left-color: var(--accent);
+    border-left-color: var(--gold);
 }
 
 .admin-nav-btn.active {
     background: var(--surface-2);
-    color: var(--accent);
-    border-left-color: var(--accent);
+    color: var(--gold);
+    border-left-color: var(--gold);
     font-weight: 600;
 }
 
@@ -1436,7 +1591,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .admin-logout:hover {
     color: #fff;
-    background: rgba(220, 53, 69, 0.1);
+    background: rgba(185, 106, 98, 0.1);
     border-left-color: var(--danger);
 }
 
@@ -1465,6 +1620,7 @@ h1, h2, h3, h4, h5, h6 {
 .admin-page-title {
     font-size: 1.8rem;
     letter-spacing: 0.05em;
+    color: var(--text);
 }
 
 .admin-content {
@@ -1479,6 +1635,7 @@ h1, h2, h3, h4, h5, h6 {
     display: block;
 }
 
+/* Stats */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -1504,14 +1661,17 @@ h1, h2, h3, h4, h5, h6 {
 .stat-card .stat-value {
     font-size: 2rem;
     font-weight: 700;
-    color: var(--accent);
+    color: var(--gold);
 }
 
+/* Admin lists */
 .admin-list-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
 .admin-list {
@@ -1540,6 +1700,7 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
     gap: 0.6rem;
     flex-wrap: wrap;
+    margin-top: 1rem;
 }
 
 .admin-actions .btn {
@@ -1547,6 +1708,7 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 0.75rem;
 }
 
+/* Status badges */
 .order-status-badge {
     padding: 0.3rem 0.8rem;
     border-radius: 999px;
@@ -1554,14 +1716,74 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
+    display: inline-block;
+    margin: 0.2rem;
 }
 
-.status-pending { background: #333; color: #e0cf9a; }
-.status-approved { background: #0f3d1e; color: #4ade80; }
-.status-rejected { background: #4a1518; color: #f87171; }
-.status-delivered { background: #0f3d2e; color: #2dd4bf; }
-.status-cancelled { background: #333; color: #9ca3af; }
+.status-pending {
+    background: #333;
+    color: #e0cf9a;
+}
 
+.status-approved {
+    background: #0f3d1e;
+    color: #4ade80;
+}
+
+.status-rejected {
+    background: #4a1518;
+    color: #f87171;
+}
+
+.status-delivered {
+    background: #0f3d2e;
+    color: #2dd4bf;
+}
+
+.status-cancelled {
+    background: #333;
+    color: #9ca3af;
+}
+
+.payment-status-pending {
+    background: #333;
+    color: #e0cf9a;
+}
+
+.payment-status-verified {
+    background: #0f3d1e;
+    color: #4ade80;
+}
+
+.payment-status-rejected {
+    background: #4a1518;
+    color: #f87171;
+}
+
+.payment-status-unpaid {
+    background: #333;
+    color: #9ca3af;
+}
+
+/* Order items */
+.order-items {
+    margin: 0.6rem 0;
+    padding-left: 1.2rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.order-total {
+    font-weight: 700;
+    color: var(--gold);
+}
+
+.rejection-reason {
+    color: var(--danger);
+    margin-top: 0.5rem;
+}
+
+/* Chat admin */
 .chat-admin-layout {
     display: grid;
     grid-template-columns: 300px 1fr;
@@ -1600,12 +1822,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .unread-badge {
-    background: var(--accent);
+    background: var(--gold);
     color: var(--bg);
     border-radius: 50%;
     padding: 0.1rem 0.5rem;
     font-size: 0.7rem;
     margin-left: 0.5rem;
+    font-weight: 700;
 }
 
 .chat-window {
@@ -1628,6 +1851,29 @@ h1, h2, h3, h4, h5, h6 {
     padding: 1.5rem;
 }
 
+.admin-status pre {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+}
+
+/* Payment proof viewer */
+.payment-proof-modal-content {
+    width: min(800px, 95%);
+}
+
+.payment-proof-viewer {
+    text-align: center;
+}
+
+.payment-proof-viewer img {
+    max-width: 100%;
+    max-height: 60vh;
+    object-fit: contain;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+}
+
 /* ============================================================
    Responsive
    ============================================================ */
@@ -1635,12 +1881,15 @@ h1, h2, h3, h4, h5, h6 {
     .admin-sidebar {
         transform: translateX(-100%);
     }
+
     .admin-sidebar.open {
         transform: translateX(0);
     }
+
     .admin-main {
         margin-left: 0;
     }
+
     .admin-sidebar-toggle {
         display: block;
     }
@@ -1650,39 +1899,54 @@ h1, h2, h3, h4, h5, h6 {
     .header-inner {
         height: 60px;
     }
+
     .main-nav {
         display: none;
     }
+
     .hamburger {
         display: flex;
     }
+
     .hero-inner {
         flex-direction: column;
         text-align: center;
         padding: 2rem 0;
     }
+
     .hero-actions {
         justify-content: center;
     }
+
     .hero-visual {
         order: -1;
         margin-bottom: 2rem;
     }
+
     .hero-watch-img {
         width: 70%;
     }
+
     .about-inner {
         flex-direction: column;
         text-align: center;
     }
+
     .chat-admin-layout {
         grid-template-columns: 1fr;
     }
+
     .product-grid {
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     }
+
     .drawer {
         width: 100%;
+    }
+
+    .checkout-steps {
+        flex-direction: column;
+        gap: 0.5rem;
     }
 }
 
@@ -1690,8 +1954,30 @@ h1, h2, h3, h4, h5, h6 {
     .product-grid {
         grid-template-columns: 1fr;
     }
+
     .admin-card-header {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .admin-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .admin-actions .btn {
+        width: 100%;
+    }
+
+    .modal-content {
+        padding: 1.5rem;
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+    }
+
+    .section {
+        padding: 4rem 0;
     }
 }

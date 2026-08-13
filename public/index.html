@@ -3,17 +3,15 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TIME BRAND | Premium Sneakers & Fashion</title>
+    <title>TIME BRAND | Premium Footwear</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
-    <!-- Toast Container -->
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
-    <!-- Header -->
     <header class="site-header" id="site-header">
         <div class="container header-inner">
             <button class="hamburger" id="hamburger-btn" aria-label="Open menu">
@@ -41,7 +39,6 @@
                 </button>
             </nav>
         </div>
-        <!-- Mobile nav -->
         <div id="mobile-nav-overlay" class="mobile-nav-overlay">
             <div class="mobile-nav-content">
                 <button class="close-mobile-nav" id="close-mobile-nav" aria-label="Close menu">×</button>
@@ -56,26 +53,23 @@
         </div>
     </header>
 
-    <!-- Search Overlay -->
     <div id="search-overlay" class="search-overlay">
         <div class="search-overlay-content">
             <button class="close-overlay" id="close-search" aria-label="Close search">×</button>
-            <input type="text" id="search-input" placeholder="Search sneakers..." aria-label="Search products" />
+            <input type="text" id="search-input" placeholder="Search footwear..." aria-label="Search products" />
             <div id="search-results" class="search-results"></div>
         </div>
     </div>
 
-    <!-- Hero Section -->
     <section class="hero" id="home">
         <div class="hero-bg"></div>
         <div class="container hero-inner">
             <div class="hero-content">
                 <p class="hero-label">TIME BRAND · EST. 2026</p>
-                <h1 class="hero-title">EVERY STEP<br />MATTERS.</h1>
-                <p class="hero-subtitle">Premium sneakers designed for the modern journey.</p>
+                <h1 class="hero-title">TIMELESS<br />STYLE.</h1>
+                <p class="hero-subtitle">Premium footwear designed for modern lifestyle.</p>
                 <div class="hero-actions">
                     <button class="btn btn-primary" data-scroll="shop">SHOP COLLECTION</button>
-                    <button class="btn btn-outline" data-scroll="new-arrivals">EXPLORE NEW ARRIVALS</button>
                 </div>
             </div>
             <div class="hero-visual">
@@ -85,12 +79,11 @@
         </div>
     </section>
 
-    <!-- Shop / Featured Products -->
     <section class="section shop-section" id="shop">
         <div class="container">
             <div class="section-header">
                 <h2 class="section-title">THE COLLECTION</h2>
-                <p class="section-subtitle">Crafted for every move.</p>
+                <p class="section-subtitle">Crafted for every step.</p>
             </div>
             <div class="filter-bar">
                 <button class="filter-btn active" data-filter="all">ALL</button>
@@ -99,13 +92,11 @@
                 <button class="filter-btn" data-filter="Limited">LIMITED</button>
             </div>
             <div id="product-grid" class="product-grid">
-                <!-- Products rendered by JavaScript -->
                 <div class="loading-skeleton">Loading products...</div>
             </div>
         </div>
     </section>
 
-    <!-- New Arrivals (can reuse featured products) -->
     <section class="section new-arrivals-section" id="new-arrivals">
         <div class="container">
             <div class="section-header">
@@ -118,7 +109,6 @@
         </div>
     </section>
 
-    <!-- Limited Edition -->
     <section class="section limited-section" id="limited">
         <div class="container">
             <div class="section-header">
@@ -131,13 +121,12 @@
         </div>
     </section>
 
-    <!-- About -->
     <section class="section about-section" id="about">
         <div class="container about-inner">
             <div class="about-content">
                 <h2 class="section-title">ABOUT TIME BRAND</h2>
                 <p>Time is more than a measurement. It is a reflection of every moment, every decision, and every journey.</p>
-                <p>TIME BRAND creates sneakers for people who understand the value of every step.</p>
+                <p>TIME BRAND creates footwear for people who understand the value of every step.</p>
             </div>
             <div class="about-image">
                 <img src="/assets/watch-placeholder.svg" alt="TIME BRAND Craftsmanship" />
@@ -145,7 +134,6 @@
         </div>
     </section>
 
-    <!-- Footer -->
     <footer class="site-footer">
         <div class="container footer-inner">
             <div class="footer-brand">
@@ -154,7 +142,7 @@
             </div>
             <div class="footer-links">
                 <h4>Shop</h4>
-                <button data-scroll="shop">All Sneakers</button>
+                <button data-scroll="shop">All Footwear</button>
                 <button data-scroll="new-arrivals">New Arrivals</button>
                 <button data-scroll="limited">Limited Edition</button>
             </div>
@@ -176,7 +164,6 @@
         </div>
     </footer>
 
-    <!-- Cart Drawer -->
     <div id="cart-drawer" class="drawer cart-drawer" role="dialog" aria-modal="true" aria-labelledby="cart-title">
         <div class="drawer-overlay" data-close-drawer></div>
         <div class="drawer-content">
@@ -184,9 +171,7 @@
                 <h3 id="cart-title">YOUR CART</h3>
                 <button class="close-drawer" data-close-drawer aria-label="Close cart">×</button>
             </div>
-            <div id="cart-items" class="cart-items">
-                <!-- Cart items rendered -->
-            </div>
+            <div id="cart-items" class="cart-items"></div>
             <div class="cart-footer">
                 <div class="cart-subtotal">
                     <span>SUBTOTAL</span>
@@ -197,7 +182,6 @@
         </div>
     </div>
 
-    <!-- Checkout Modal -->
     <div id="checkout-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="checkout-title">
         <div class="modal-overlay" data-close-modal></div>
         <div class="modal-content">
@@ -208,7 +192,8 @@
             <div class="checkout-steps">
                 <div class="step active" data-step="1">01 CUSTOMER</div>
                 <div class="step" data-step="2">02 DELIVERY</div>
-                <div class="step" data-step="3">03 REVIEW</div>
+                <div class="step" data-step="3">03 PAYMENT</div>
+                <div class="step" data-step="4">04 REVIEW</div>
             </div>
             <form id="checkout-form">
                 <div id="checkout-step-1" class="checkout-step active">
@@ -234,24 +219,52 @@
                         <label for="checkout-city">City</label>
                         <input type="text" id="checkout-city" required />
                     </div>
-                    <div class="form-group">
-                        <label for="checkout-notes">Additional Information (optional)</label>
-                        <textarea id="checkout-notes" rows="2"></textarea>
-                    </div>
                 </div>
                 <div id="checkout-step-3" class="checkout-step">
-                    <div class="form-group">
-                        <label for="checkout-payment-method">Payment Method</label>
-                        <select id="checkout-payment-method">
-                            <option value="Cash on Delivery">Cash on Delivery</option>
-                            <option value="Bank Transfer">Bank Transfer</option>
-                            <option value="Telebirr">Telebirr</option>
-                        </select>
+                    <div class="payment-methods">
+                        <label class="payment-option">
+                            <input type="radio" name="payment-method" value="telebirr" checked />
+                            <div class="payment-option-content">
+                                <strong>TELEBIRR</strong>
+                                <p>Send payment to: <span class="payment-account">0940213338</span></p>
+                                <button type="button" class="btn btn-outline copy-btn" data-account="0940213338">COPY</button>
+                            </div>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="payment-method" value="cbe" />
+                            <div class="payment-option-content">
+                                <strong>CBE BANK</strong>
+                                <p>Account: <span class="payment-account">1000641150324</span></p>
+                                <button type="button" class="btn btn-outline copy-btn" data-account="1000641150324">COPY</button>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="payment-instructions">
+                        <h4>Payment Instructions:</h4>
+                        <ol>
+                            <li>Select Telebirr or CBE.</li>
+                            <li>Send the exact order total.</li>
+                            <li>Complete the payment.</li>
+                            <li>Enter your transaction/reference number.</li>
+                            <li>Upload a screenshot/payment proof.</li>
+                            <li>Submit the order.</li>
+                            <li>TIME BRAND admin will verify the payment.</li>
+                            <li>Your order will remain PENDING until verified.</li>
+                        </ol>
                     </div>
                     <div class="form-group">
-                        <label for="checkout-payment-reference">Payment Reference (if any)</label>
-                        <input type="text" id="checkout-payment-reference" placeholder="Transaction ID" />
+                        <label for="checkout-payment-reference">Payment Reference / Transaction ID</label>
+                        <input type="text" id="checkout-payment-reference" required placeholder="TXN123456789" />
                     </div>
+                    <div class="form-group">
+                        <label for="checkout-payment-proof">Payment Screenshot</label>
+                        <input type="file" id="checkout-payment-proof" accept=".jpg,.jpeg,.png,.webp" />
+                        <div id="payment-proof-preview" class="payment-proof-preview"></div>
+                        <small>Maximum 5 MB. JPG, PNG, WEBP.</small>
+                    </div>
+                    <p class="payment-notice">Your payment will be manually verified by TIME BRAND.</p>
+                </div>
+                <div id="checkout-step-4" class="checkout-step">
                     <div id="checkout-summary" class="checkout-summary"></div>
                 </div>
                 <div id="checkout-error" class="error-message" role="alert"></div>
@@ -263,7 +276,6 @@
         </div>
     </div>
 
-    <!-- Product Detail Modal -->
     <div id="product-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="product-modal-title">
         <div class="modal-overlay" data-close-modal></div>
         <div class="modal-content product-modal-content">
@@ -275,7 +287,6 @@
         </div>
     </div>
 
-    <!-- Account Modal -->
     <div id="account-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="account-title">
         <div class="modal-overlay" data-close-modal></div>
         <div class="modal-content">
@@ -283,13 +294,10 @@
                 <h3 id="account-title">YOUR ACCOUNT</h3>
                 <button class="close-modal" data-close-modal aria-label="Close account">×</button>
             </div>
-            <div id="account-panel">
-                <!-- Rendered by auth.js -->
-            </div>
+            <div id="account-panel"></div>
         </div>
     </div>
 
-    <!-- Chat Widget -->
     <button id="chat-widget-btn" class="chat-widget-btn" aria-label="Open support chat">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         <span>CHAT</span>
@@ -311,7 +319,6 @@
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="/js/api.js"></script>
     <script src="/js/auth.js"></script>
     <script src="/js/chat.js"></script>
