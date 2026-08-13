@@ -11,15 +11,15 @@ from flask import Flask, request, jsonify, session, Response
 from flask_cors import CORS
 
 app = Flask(__name__)
-app.secret_key = "735637adffc674de3b7704c69c8d6372d7cef7a3819c332abfeb308592e83f0b"  # hardcoded SECRET_KEY
+app.secret_key = "735637adffc674de3b7704c69c8d6372d7cef7a3819c332abfeb308592e83f0b"
 app.url_map.strict_slashes = False
 CORS(app, supports_credentials=True)
 
 # ---------------------------------------------------------------------------
 # Vercel Blob Configuration (Private Store)
 # ---------------------------------------------------------------------------
-BLOB_TOKEN = "vercel_blob_rw_RhVMFMxBigsUHFnn_rjoM8AgX9iCQmvAShywb0XeD0LHrS9"  # hardcoded token
-BLOB_BASE = "https://rhvmfmxbigsuhfnn.private.blob.vercel-storage.com"  # your private blob base
+BLOB_TOKEN = "vercel_blob_rw_RhVMFMxBigsUHFnn_rjoM8AgX9iCQmvAShywb0XeD0LHrS9"
+BLOB_BASE = "https://rhvmfmxbigsuhfnn.private.blob.vercel-storage.com"
 
 TELEBIRR_ACCOUNT = "0940213338"
 CBE_ACCOUNT = "1000641150324"
@@ -29,16 +29,18 @@ class StorageError(Exception):
     pass
 
 
-def _blob_url(filename):
-    """Construct the private Blob URL with token query parameter."""
-    return f"{BLOB_BASE}/{filename}?token={BLOB_TOKEN}"
-
-
 def _blob_headers(content_type=None):
-    headers = {"Authorization": f"Bearer {BLOB_TOKEN}"}
+    headers = {
+        "Authorization": f"Bearer {BLOB_TOKEN}",
+        "x-api-version": "6",           # REQUIRED by Vercel Blob private stores
+    }
     if content_type:
         headers["Content-Type"] = content_type
     return headers
+
+
+def _blob_url(filename):
+    return f"{BLOB_BASE}/{filename}"
 
 
 def read_json_blob(filename):
@@ -203,7 +205,7 @@ def find_user_by_id(users, user_id):
 # ---------------------------------------------------------------------------
 # Admin auth
 # ---------------------------------------------------------------------------
-ADMIN_PASSWORD = "time"  # hardcoded admin password
+ADMIN_PASSWORD = "time"
 
 
 def is_admin():
