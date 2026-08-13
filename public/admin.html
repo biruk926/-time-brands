@@ -4,15 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TIME BRAND Admin</title>
+    <meta name="description" content="TIME BRAND Admin Dashboard" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body class="admin-body">
+    <!-- Toast Notifications Container -->
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
-    <!-- Admin Login -->
+    <!-- ============================================================
+         ADMIN LOGIN
+    ============================================================ -->
     <div id="admin-login" class="admin-login">
         <div class="admin-login-box">
             <h1 class="admin-login-title">TIME <span>BRAND</span> ADMIN</h1>
@@ -27,9 +31,12 @@
         </div>
     </div>
 
-    <!-- Admin Dashboard (hidden until login) -->
+    <!-- ============================================================
+         ADMIN DASHBOARD (Hidden until successful login)
+    ============================================================ -->
     <div id="admin-dashboard" hidden>
         <div class="admin-layout">
+            <!-- Sidebar -->
             <aside class="admin-sidebar" id="admin-sidebar">
                 <div class="admin-sidebar-header">
                     <span class="logo-time">TIME</span> <span class="logo-brand">BRAND</span>
@@ -46,6 +53,7 @@
                 </nav>
             </aside>
 
+            <!-- Main Content Area -->
             <main class="admin-main">
                 <header class="admin-topbar">
                     <button id="admin-sidebar-toggle" class="admin-sidebar-toggle" aria-label="Toggle sidebar">☰</button>
@@ -53,37 +61,54 @@
                 </header>
 
                 <div class="admin-content">
+                    <!-- Overview Tab -->
                     <section id="tab-overview" class="tab-panel active">
-                        <div class="stats-grid" id="overview-stats"></div>
+                        <div class="stats-grid" id="overview-stats">
+                            <!-- Statistics cards will be rendered here -->
+                        </div>
                     </section>
 
+                    <!-- Orders Tab -->
                     <section id="tab-orders" class="tab-panel">
                         <div class="admin-list-header">
                             <h2>Orders</h2>
                         </div>
-                        <div id="admin-orders-list" class="admin-list"></div>
+                        <div id="admin-orders-list" class="admin-list">
+                            <!-- Orders will be rendered here -->
+                        </div>
                     </section>
 
+                    <!-- Products Tab -->
                     <section id="tab-products" class="tab-panel">
                         <div class="admin-list-header">
                             <h2>Products</h2>
                             <button id="add-product-btn" class="btn btn-primary">ADD PRODUCT</button>
                         </div>
-                        <div id="admin-products-list" class="admin-list"></div>
+                        <div id="admin-products-list" class="admin-list">
+                            <!-- Products will be rendered here -->
+                        </div>
                     </section>
 
+                    <!-- Customers Tab -->
                     <section id="tab-customers" class="tab-panel">
                         <div class="admin-list-header">
                             <h2>Customers</h2>
                         </div>
-                        <div id="admin-customers-list" class="admin-list"></div>
+                        <div id="admin-customers-list" class="admin-list">
+                            <!-- Customers will be rendered here -->
+                        </div>
                     </section>
 
+                    <!-- Chat Tab -->
                     <section id="tab-chat" class="tab-panel">
                         <div class="chat-admin-layout">
-                            <div id="conversation-list" class="conversation-list"></div>
+                            <div id="conversation-list" class="conversation-list">
+                                <!-- Conversation list rendered here -->
+                            </div>
                             <div class="chat-window">
-                                <div id="admin-chat-messages" class="chat-messages"></div>
+                                <div id="admin-chat-messages" class="chat-messages">
+                                    <!-- Messages rendered here -->
+                                </div>
                                 <form id="admin-chat-form" class="chat-form">
                                     <input type="text" id="admin-chat-input" placeholder="Type your reply..." required />
                                     <button type="submit" class="btn btn-primary">SEND</button>
@@ -92,48 +117,32 @@
                         </div>
                     </section>
 
+                    <!-- Settings Tab -->
                     <section id="tab-settings" class="tab-panel">
                         <h2>Settings</h2>
-                        <div id="admin-status" class="admin-status"></div>
+                        <div id="admin-status" class="admin-status">
+                            <!-- API health status displayed here -->
+                        </div>
                     </section>
                 </div>
             </main>
         </div>
     </div>
 
-    <!-- Reject Payment Modal -->
-    <div id="reject-payment-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="reject-payment-title">
+    <!-- ============================================================
+         REJECT ORDER MODAL
+    ============================================================ -->
+    <div id="reject-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="reject-title">
         <div class="modal-overlay" data-close-modal></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="reject-payment-title">REJECT PAYMENT</h3>
+                <h3 id="reject-title">REJECT ORDER</h3>
                 <button class="close-modal" data-close-modal aria-label="Close">×</button>
             </div>
-            <form id="reject-payment-form">
+            <form id="reject-form">
                 <div class="form-group">
-                    <label for="reject-payment-reason">Rejection Reason</label>
-                    <textarea id="reject-payment-reason" rows="3" required placeholder="Payment reference does not match"></textarea>
-                </div>
-                <input type="hidden" id="reject-payment-order-id" />
-                <div class="modal-actions">
-                    <button type="submit" class="btn btn-danger">REJECT PAYMENT</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Reject Order Modal -->
-    <div id="reject-order-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="reject-order-title">
-        <div class="modal-overlay" data-close-modal></div>
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="reject-order-title">REJECT ORDER</h3>
-                <button class="close-modal" data-close-modal aria-label="Close">×</button>
-            </div>
-            <form id="reject-order-form">
-                <div class="form-group">
-                    <label for="reject-order-reason">Rejection Reason</label>
-                    <textarea id="reject-order-reason" rows="3" required placeholder="Order cannot be fulfilled"></textarea>
+                    <label for="reject-reason">Rejection Reason</label>
+                    <textarea id="reject-reason" rows="3" required placeholder="Explain why this order is rejected..."></textarea>
                 </div>
                 <input type="hidden" id="reject-order-id" />
                 <div class="modal-actions">
@@ -143,24 +152,9 @@
         </div>
     </div>
 
-    <!-- Payment Proof Viewer Modal -->
-    <div id="payment-proof-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="payment-proof-title">
-        <div class="modal-overlay" data-close-modal></div>
-        <div class="modal-content payment-proof-modal-content">
-            <div class="modal-header">
-                <h3 id="payment-proof-title">PAYMENT PROOF</h3>
-                <button class="close-modal" data-close-modal aria-label="Close">×</button>
-            </div>
-            <div class="payment-proof-viewer">
-                <img id="payment-proof-image" src="" alt="Payment Proof" />
-            </div>
-            <div class="modal-actions">
-                <button type="button" class="btn btn-outline" id="payment-proof-open-full">OPEN FULL SIZE</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Product Form Modal -->
+    <!-- ============================================================
+         PRODUCT FORM MODAL (Add/Edit)
+    ============================================================ -->
     <div id="product-form-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="product-form-title">
         <div class="modal-overlay" data-close-modal></div>
         <div class="modal-content">
@@ -175,15 +169,11 @@
                 </div>
                 <div class="form-group">
                     <label for="product-description">Description</label>
-                    <textarea id="product-description" rows="3"></textarea>
+                    <textarea id="product-description" rows="2"></textarea>
                 </div>
                 <div class="form-group">
                     <label for="product-price">Price (ETB)</label>
                     <input type="number" id="product-price" step="0.01" required />
-                </div>
-                <div class="form-group">
-                    <label for="product-currency">Currency</label>
-                    <input type="text" id="product-currency" value="ETB" required />
                 </div>
                 <div class="form-group">
                     <label for="product-image">Image URL</label>
@@ -197,18 +187,8 @@
                     <label for="product-stock">Stock</label>
                     <input type="number" id="product-stock" required />
                 </div>
-                <div class="form-group">
-                    <label for="product-sizes">Sizes (comma separated)</label>
-                    <input type="text" id="product-sizes" value="40,41,42,43,44" />
-                </div>
                 <div class="form-group checkbox-group">
-                    <label for="product-featured" class="checkbox-label">
-                        <input type="checkbox" id="product-featured" />
-                        Featured
-                    </label>
-                </div>
-                <div class="form-group checkbox-group">
-                    <label for="product-active" class="checkbox-label">
+                    <label class="checkbox-label">
                         <input type="checkbox" id="product-active" checked />
                         Active
                     </label>
@@ -221,6 +201,7 @@
         </div>
     </div>
 
+    <!-- JavaScript Files -->
     <script src="/js/api.js"></script>
     <script src="/js/admin.js"></script>
 </body>

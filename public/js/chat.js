@@ -1,3 +1,7 @@
+/**
+ * TIME BRAND - Customer Chat
+ * Handles the floating chat widget and message polling.
+ */
 (function () {
     let chatPollTimer = null;
     let activeConversationId = null;
@@ -6,10 +10,13 @@
     document.addEventListener("DOMContentLoaded", () => {
         currentUser = TimeAuth.getCachedUser();
 
-        document.getElementById("chat-widget-btn").addEventListener("click", openChat);
-        document.getElementById("footer-chat-btn").addEventListener("click", openChat);
+        const chatWidgetBtn = document.getElementById("chat-widget-btn");
+        const footerChatBtn = document.getElementById("footer-chat-btn");
+        const chatForm = document.getElementById("chat-form");
 
-        document.getElementById("chat-form").addEventListener("submit", handleSendMessage);
+        if (chatWidgetBtn) chatWidgetBtn.addEventListener("click", openChat);
+        if (footerChatBtn) footerChatBtn.addEventListener("click", openChat);
+        if (chatForm) chatForm.addEventListener("submit", handleSendMessage);
     });
 
     function openChat() {
@@ -18,7 +25,7 @@
                 currentUser = user;
                 activeConversationId = user.id;
                 const drawer = document.getElementById("chat-drawer");
-                drawer.classList.add("open");
+                if (drawer) drawer.classList.add("open");
                 loadMessages();
                 startPolling();
             })
@@ -29,19 +36,16 @@
             });
     }
 
-    function closeChat() {
-        document.getElementById("chat-drawer").classList.remove("open");
-        stopPolling();
-    }
-
     async function loadMessages() {
         if (!activeConversationId) return;
         const container = document.getElementById("chat-messages");
+        if (!container) return;
+
         try {
             const response = await TimeAPI.getMessages(activeConversationId);
             renderMessages(response.messages || []);
         } catch (error) {
-            container.innerHTML = `<div class="empty-state">UNABLE TO LOAD MESSAGES<br />${escapeHtml(error.message)}</div>`;
+            container.innerHTML = `<div class="empty-state">UNABLE TO LOAD MESSAGES<br/>${escapeHtml(error.message)}</div>`;
         }
     }
 
@@ -50,7 +54,7 @@
         if (!container) return;
 
         if (!messages.length) {
-            container.innerHTML = `<div class="empty-state">START A CONVERSATION<br />Our support team is here to help.</div>`;
+            container.innerHTML = `<div class="empty-state">START A CONVERSATION<br/>Our support team is here to help.</div>`;
             return;
         }
 
@@ -70,6 +74,7 @@
     async function handleSendMessage(event) {
         event.preventDefault();
         const input = document.getElementById("chat-input");
+        if (!input) return;
         const message = input.value.trim();
         if (!message || !activeConversationId) return;
 
@@ -88,7 +93,7 @@
 
     function startPolling() {
         stopPolling();
-        chatPollTimer = setInterval(loadMessages, 5000);
+        chatPollTimer = setInterval(loadMessages, 5000); // Poll every 5 seconds
     }
 
     function stopPolling() {
@@ -98,12 +103,15 @@
         }
     }
 
+    // Close drawer when overlay or close button clicked
     document.addEventListener("click", (event) => {
         if (event.target.closest("[data-close-drawer]")) {
             const drawer = event.target.closest(".drawer");
             if (drawer) {
                 drawer.classList.remove("open");
-                if (drawer.id === "chat-drawer") stopPolling();
+                if (drawer.id === "chat-drawer") {
+                    stopPolling();
+                }
             }
         }
     });
@@ -120,12 +128,13 @@
 
     function escapeHtml(text) {
         if (!text) return "";
-        return String(text)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+        return String(text).replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        }[c]));
     }
 
     function formatTime(isoString) {
@@ -137,7 +146,5 @@
         }
     }
 
-    window.TimeChat = {
-        openChat,
-    };
+    window.TimeChat = { openChat };
 })();

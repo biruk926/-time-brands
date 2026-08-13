@@ -3,26 +3,38 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TIME BRAND | Premium Footwear</title>
+    <title>TIME BRAND | Premium Sneakers</title>
+    <meta name="description" content="TIME BRAND - Premium sneakers and footwear. Step into your style." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
+    <!-- Toast Notifications Container -->
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
+    <!-- ============================================================
+         HEADER
+    ============================================================ -->
     <header class="site-header" id="site-header">
         <div class="container header-inner">
+            <!-- Mobile Hamburger -->
             <button class="hamburger" id="hamburger-btn" aria-label="Open menu">
-                <span></span><span></span><span></span>
+                <span></span>
+                <span></span>
+                <span></span>
             </button>
-            <a href="/" class="logo">
+
+            <!-- Logo -->
+            <a href="/" class="logo" aria-label="TIME BRAND Home">
                 <span class="logo-time">TIME</span>
                 <span class="logo-brand">BRAND</span>
             </a>
+
+            <!-- Desktop Navigation -->
             <nav class="main-nav" id="main-nav" aria-label="Main navigation">
-                <button class="nav-link" data-scroll="home">HOME</button>
+                <button class="nav-link" data-scroll="shop">HOME</button>
                 <button class="nav-link" data-scroll="shop">SHOP</button>
                 <button class="nav-link" data-scroll="new-arrivals">NEW ARRIVALS</button>
                 <button class="nav-link" data-scroll="limited">LIMITED</button>
@@ -39,10 +51,12 @@
                 </button>
             </nav>
         </div>
+
+        <!-- Mobile Navigation Overlay -->
         <div id="mobile-nav-overlay" class="mobile-nav-overlay">
             <div class="mobile-nav-content">
                 <button class="close-mobile-nav" id="close-mobile-nav" aria-label="Close menu">×</button>
-                <button class="mobile-nav-link" data-scroll="home">HOME</button>
+                <button class="mobile-nav-link" data-scroll="shop">HOME</button>
                 <button class="mobile-nav-link" data-scroll="shop">SHOP</button>
                 <button class="mobile-nav-link" data-scroll="new-arrivals">NEW ARRIVALS</button>
                 <button class="mobile-nav-link" data-scroll="limited">LIMITED</button>
@@ -53,6 +67,9 @@
         </div>
     </header>
 
+    <!-- ============================================================
+         SEARCH OVERLAY
+    ============================================================ -->
     <div id="search-overlay" class="search-overlay">
         <div class="search-overlay-content">
             <button class="close-overlay" id="close-search" aria-label="Close search">×</button>
@@ -61,15 +78,19 @@
         </div>
     </div>
 
+    <!-- ============================================================
+         HERO SECTION
+    ============================================================ -->
     <section class="hero" id="home">
         <div class="hero-bg"></div>
         <div class="container hero-inner">
             <div class="hero-content">
                 <p class="hero-label">TIME BRAND · EST. 2026</p>
-                <h1 class="hero-title">TIMELESS<br />STYLE.</h1>
-                <p class="hero-subtitle">Premium footwear designed for modern lifestyle.</p>
+                <h1 class="hero-title">STEP INTO<br />YOUR STYLE.</h1>
+                <p class="hero-subtitle">Premium sneakers. Modern lifestyle. Timeless confidence.</p>
                 <div class="hero-actions">
-                    <button class="btn btn-primary" data-scroll="shop">SHOP COLLECTION</button>
+                    <button class="btn btn-primary" data-scroll="shop">SHOP NOW</button>
+                    <button class="btn btn-outline" data-scroll="new-arrivals">EXPLORE COLLECTION</button>
                 </div>
             </div>
             <div class="hero-visual">
@@ -79,6 +100,9 @@
         </div>
     </section>
 
+    <!-- ============================================================
+         SHOP / COLLECTION SECTION
+    ============================================================ -->
     <section class="section shop-section" id="shop">
         <div class="container">
             <div class="section-header">
@@ -92,11 +116,15 @@
                 <button class="filter-btn" data-filter="Limited">LIMITED</button>
             </div>
             <div id="product-grid" class="product-grid">
+                <!-- Products will be dynamically rendered by JavaScript -->
                 <div class="loading-skeleton">Loading products...</div>
             </div>
         </div>
     </section>
 
+    <!-- ============================================================
+         NEW ARRIVALS SECTION
+    ============================================================ -->
     <section class="section new-arrivals-section" id="new-arrivals">
         <div class="container">
             <div class="section-header">
@@ -104,11 +132,15 @@
                 <p class="section-subtitle">The latest drops.</p>
             </div>
             <div id="new-arrivals-grid" class="product-grid">
+                <!-- New arrivals will be rendered -->
                 <div class="loading-skeleton">Loading new arrivals...</div>
             </div>
         </div>
     </section>
 
+    <!-- ============================================================
+         LIMITED EDITION SECTION
+    ============================================================ -->
     <section class="section limited-section" id="limited">
         <div class="container">
             <div class="section-header">
@@ -116,11 +148,15 @@
                 <p class="section-subtitle">Exclusive pieces.</p>
             </div>
             <div id="limited-grid" class="product-grid">
+                <!-- Limited edition items will be rendered -->
                 <div class="loading-skeleton">Loading limited edition...</div>
             </div>
         </div>
     </section>
 
+    <!-- ============================================================
+         ABOUT SECTION
+    ============================================================ -->
     <section class="section about-section" id="about">
         <div class="container about-inner">
             <div class="about-content">
@@ -134,6 +170,25 @@
         </div>
     </section>
 
+    <!-- ============================================================
+         ORDERS SECTION (Customer Order History)
+    ============================================================ -->
+    <section class="section orders-section" id="orders-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">MY ORDERS</h2>
+                <p class="section-subtitle">Track your TIME BRAND journey.</p>
+            </div>
+            <div id="order-history">
+                <!-- Orders will be rendered here -->
+                <div class="empty-state">YOUR JOURNEY HASN'T STARTED YET<br />Your TIME BRAND orders will appear here.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         FOOTER
+    ============================================================ -->
     <footer class="site-footer">
         <div class="container footer-inner">
             <div class="footer-brand">
@@ -164,6 +219,9 @@
         </div>
     </footer>
 
+    <!-- ============================================================
+         CART DRAWER
+    ============================================================ -->
     <div id="cart-drawer" class="drawer cart-drawer" role="dialog" aria-modal="true" aria-labelledby="cart-title">
         <div class="drawer-overlay" data-close-drawer></div>
         <div class="drawer-content">
@@ -171,7 +229,9 @@
                 <h3 id="cart-title">YOUR CART</h3>
                 <button class="close-drawer" data-close-drawer aria-label="Close cart">×</button>
             </div>
-            <div id="cart-items" class="cart-items"></div>
+            <div id="cart-items" class="cart-items">
+                <!-- Cart items rendered dynamically -->
+            </div>
             <div class="cart-footer">
                 <div class="cart-subtotal">
                     <span>SUBTOTAL</span>
@@ -182,6 +242,9 @@
         </div>
     </div>
 
+    <!-- ============================================================
+         CHECKOUT MODAL
+    ============================================================ -->
     <div id="checkout-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="checkout-title">
         <div class="modal-overlay" data-close-modal></div>
         <div class="modal-content">
@@ -196,6 +259,7 @@
                 <div class="step" data-step="4">04 REVIEW</div>
             </div>
             <form id="checkout-form">
+                <!-- Step 1: Customer Information -->
                 <div id="checkout-step-1" class="checkout-step active">
                     <div class="form-group">
                         <label for="checkout-name">Full Name</label>
@@ -210,6 +274,7 @@
                         <input type="tel" id="checkout-phone" placeholder="094..." />
                     </div>
                 </div>
+                <!-- Step 2: Delivery Information -->
                 <div id="checkout-step-2" class="checkout-step">
                     <div class="form-group">
                         <label for="checkout-address">Address</label>
@@ -220,6 +285,7 @@
                         <input type="text" id="checkout-city" required />
                     </div>
                 </div>
+                <!-- Step 3: Payment Information -->
                 <div id="checkout-step-3" class="checkout-step">
                     <div class="payment-methods">
                         <label class="payment-option">
@@ -264,6 +330,7 @@
                     </div>
                     <p class="payment-notice">Your payment will be manually verified by TIME BRAND.</p>
                 </div>
+                <!-- Step 4: Order Review -->
                 <div id="checkout-step-4" class="checkout-step">
                     <div id="checkout-summary" class="checkout-summary"></div>
                 </div>
@@ -276,9 +343,12 @@
         </div>
     </div>
 
+    <!-- ============================================================
+         PRODUCT DETAIL MODAL
+    ============================================================ -->
     <div id="product-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="product-modal-title">
         <div class="modal-overlay" data-close-modal></div>
-        <div class="modal-content product-modal-content">
+        <div class="modal-content">
             <div class="modal-header">
                 <h3 id="product-modal-title">PRODUCT</h3>
                 <button class="close-modal" data-close-modal aria-label="Close product details">×</button>
@@ -287,6 +357,9 @@
         </div>
     </div>
 
+    <!-- ============================================================
+         ACCOUNT MODAL
+    ============================================================ -->
     <div id="account-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="account-title">
         <div class="modal-overlay" data-close-modal></div>
         <div class="modal-content">
@@ -294,10 +367,15 @@
                 <h3 id="account-title">YOUR ACCOUNT</h3>
                 <button class="close-modal" data-close-modal aria-label="Close account">×</button>
             </div>
-            <div id="account-panel"></div>
+            <div id="account-panel">
+                <!-- Account form will be rendered by auth.js -->
+            </div>
         </div>
     </div>
 
+    <!-- ============================================================
+         CHAT WIDGET & DRAWER
+    ============================================================ -->
     <button id="chat-widget-btn" class="chat-widget-btn" aria-label="Open support chat">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         <span>CHAT</span>
@@ -319,6 +397,7 @@
         </div>
     </div>
 
+    <!-- JavaScript Files -->
     <script src="/js/api.js"></script>
     <script src="/js/auth.js"></script>
     <script src="/js/chat.js"></script>

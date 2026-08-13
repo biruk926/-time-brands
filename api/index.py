@@ -7,109 +7,159 @@ import base64
 from functools import wraps
 
 import requests
-from flask import Flask, request, jsonify, session
+from flask import Flask, request, jsonify, session, Response
 from flask_cors import CORS
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "735637adffc674de3b7704c69c8d6372d7cef7a3819c332abfeb308592e83f0b")
+app.secret_key = "735637adffc674de3b7704c69c8d6372d7cef7a3819c332abfeb308592e83f0b"  # hardcoded SECRET_KEY
 app.url_map.strict_slashes = False
 CORS(app, supports_credentials=True)
 
 # ---------------------------------------------------------------------------
-# Storage (Vercel Blob) - With hardcoded fallback token
+# Vercel Blob Configuration (Private Store)
 # ---------------------------------------------------------------------------
-BLOB_TOKEN = os.environ.get(
-    "BLOB_READ_WRITE_TOKEN",
-    "vercel_blob_rw_RhVMFMxBigsUHFnn_rjoM8AgX9iCQmvAShywb0XeD0LHrS9"
-).strip()
+BLOB_TOKEN = "vercel_blob_rw_RhVMFMxBigsUHFnn_rjoM8AgX9iCQmvAShywb0XeD0LHrS9"  # hardcoded token
+BLOB_BASE = "https://rhvmfmxbigsuhfnn.private.blob.vercel-storage.com"  # your private blob base
 
-BLOB_BASE = "https://blob.vercel-storage.com"
-
-# Payment account details (public)
 TELEBIRR_ACCOUNT = "0940213338"
 CBE_ACCOUNT = "1000641150324"
+
 
 class StorageError(Exception):
     pass
 
-def read_blob(filename):
-    if not BLOB_TOKEN:
-        raise StorageError("BLOB_READ_WRITE_TOKEN is not configured")
-    url = f"{BLOB_BASE}/{filename}?token={BLOB_TOKEN}"
+
+def _blob_url(filename):
+    """Construct the private Blob URL."""
+    return f"{BLOB_BASE}/{filename}"
+
+
+def _blob_headers(content_type=None):
     headers = {"Authorization": f"Bearer {BLOB_TOKEN}"}
+    if content_type:
+        headers["Content-Type"] = content_type
+    return headers
+
+
+def read_json_blob(filename):
+    url = _blob_url(filename)
+    headers = _blob_headers()
     try:
         resp = requests.get(url, headers=headers, timeout=15)
-    except requests.RequestException as e:
-        raise StorageError(f"Could not read {filename}: network error")
+    except requests.RequestException as exc:
+        raise StorageError(f"Network error reading {filename}: {exc}")
+
     if resp.status_code == 404:
         return None
     if resp.status_code != 200:
-        raise StorageError(f"Could not read {filename}: HTTP {resp.status_code}")
+        raise StorageError(f"Blob read failed for {filename}: HTTP {resp.status_code}")
+
     text = resp.text.strip()
     if not text:
         return None
     try:
         return json.loads(text)
     except json.JSONDecodeError:
-        raise StorageError(f"Could not read {filename}: invalid JSON")
+        raise StorageError(f"Invalid JSON in {filename}")
 
-def write_blob(filename, data):
-    if not BLOB_TOKEN:
-        raise StorageError("BLOB_READ_WRITE_TOKEN is not configured")
-    url = f"{BLOB_BASE}/{filename}?token={BLOB_TOKEN}"
-    headers = {
-        "Authorization": f"Bearer {BLOB_TOKEN}",
-        "Content-Type": "application/json",
-    }
+
+def write_json_blob(filename, data):
+    url = _blob_url(filename)
+    headers = _blob_headers(content_type="application/json")
+    body = json.dumps(data)
     try:
-        resp = requests.put(url, data=json.dumps(data), headers=headers, timeout=20)
-    except requests.RequestException as e:
-        raise StorageError(f"Could not write {filename}: network error")
-    if resp.status_code not in (200, 201, 204):
-        raise StorageError(f"Could not write {filename}: HTTP {resp.status_code} - {resp.text[:300]}")
+        resp = requests.put(url, data=body, headers=headers, timeout=20)
+    except requests.RequestException as exc:
+        raise StorageError(f"Network error writing {filename}: {exc}")
 
-def ensure_blob(filename, initial):
-    data = read_blob(filename)
+    if resp.status_code not in (200, 201, 204):
+        raise StorageError(
+            f"Blob write failed for {filename}: HTTP {resp.status_code} - {resp.text[:300]}"
+        )
+
+
+def upload_blob_file(filename, file_bytes, content_type):
+    url = _blob_url(filename)
+    headers = _blob_headers(content_type=content_type)
+    try:
+        resp = requests.put(url, data=file_bytes, headers=headers, timeout=30)
+    except requests.RequestException as exc:
+        raise StorageError(f"Network error uploading {filename}: {exc}")
+
+    if resp.status_code not in (200, 201, 204):
+        raise StorageError(
+            f"Blob upload failed for {filename}: HTTP {resp.status_code} - {resp.text[:300]}"
+        )
+    return url
+
+
+def download_blob_file(filename):
+    url = _blob_url(filename)
+    headers = _blob_headers()
+    try:
+        resp = requests.get(url, headers=headers, timeout=20)
+    except requests.RequestException as exc:
+        raise StorageError(f"Network error downloading {filename}: {exc}")
+
+    if resp.status_code == 404:
+        return None, None, 404
+    if resp.status_code != 200:
+        raise StorageError(f"Blob download failed for {filename}: HTTP {resp.status_code}")
+
+    return resp.content, resp.headers.get("Content-Type", "application/octet-stream"), 200
+
+
+def ensure_json_blob(filename, initial):
+    data = read_json_blob(filename)
     if data is None:
-        write_blob(filename, initial)
+        write_json_blob(filename, initial)
         return initial
     return data
 
+
 def load_products():
-    data = ensure_blob("products.json", [])
+    data = ensure_json_blob("products.json", [])
     if not isinstance(data, list):
         raise StorageError("products.json is not a list")
     return data
 
+
 def save_products(products):
-    write_blob("products.json", products)
+    write_json_blob("products.json", products)
+
 
 def load_orders():
-    data = ensure_blob("orders.json", [])
+    data = ensure_json_blob("orders.json", [])
     if not isinstance(data, list):
         raise StorageError("orders.json is not a list")
     return data
 
+
 def save_orders(orders):
-    write_blob("orders.json", orders)
+    write_json_blob("orders.json", orders)
+
 
 def load_users():
-    data = ensure_blob("users.json", [])
+    data = ensure_json_blob("users.json", [])
     if not isinstance(data, list):
         raise StorageError("users.json is not a list")
     return data
 
+
 def save_users(users):
-    write_blob("users.json", users)
+    write_json_blob("users.json", users)
+
 
 def load_messages():
-    data = ensure_blob("messages.json", {})
+    data = ensure_json_blob("messages.json", {})
     if not isinstance(data, dict):
         raise StorageError("messages.json is not an object")
     return data
 
+
 def save_messages(messages):
-    write_blob("messages.json", messages)
+    write_json_blob("messages.json", messages)
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -117,31 +167,40 @@ def save_messages(messages):
 def utc_now():
     return datetime.datetime.utcnow().isoformat(timespec="seconds") + "Z"
 
+
 def normalize_email(email):
     return (email or "").strip().lower()
+
 
 def is_valid_email(email):
     return bool(re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email or ""))
 
+
 def is_valid_phone(phone):
     return bool(re.match(r"^[0-9+\-\s]{7,20}$", phone or ""))
+
 
 def _error(message, status_code):
     return jsonify({"success": False, "error": message}), status_code
 
+
 def find_user_by_email(users, email):
     return next((u for u in users if u.get("email") == email), None)
+
 
 def find_user_by_id(users, user_id):
     return next((u for u in users if u.get("id") == user_id), None)
 
+
 # ---------------------------------------------------------------------------
 # Admin auth
 # ---------------------------------------------------------------------------
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "time").strip()
+ADMIN_PASSWORD = "time"  # hardcoded admin password
+
 
 def is_admin():
     return bool(session.get("admin"))
+
 
 def admin_required(f):
     @wraps(f)
@@ -151,22 +210,23 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated
 
+
 # ---------------------------------------------------------------------------
-# Message helper with duplicate protection
+# Notification helper with duplicate protection
 # ---------------------------------------------------------------------------
-def create_system_message(conversation_id, text, order_id=None, event_id=None):
-    if not conversation_id:
+def create_order_notification(user_id, order_id, message_text, event_id):
+    if not user_id:
         return None
     messages = load_messages()
-    conversation = messages.setdefault(conversation_id, [])
-    if event_id and any(m.get("eventId") == event_id for m in conversation):
+    conversation = messages.setdefault(user_id, [])
+    if any(m.get("eventId") == event_id for m in conversation):
         return None
     message = {
         "id": "msg_" + uuid.uuid4().hex,
-        "conversationId": conversation_id,
-        "userId": conversation_id,
+        "userId": user_id,
+        "conversationId": user_id,
         "sender": "admin",
-        "message": text,
+        "message": message_text,
         "timestamp": utc_now(),
         "read": False,
         "orderId": order_id,
@@ -177,74 +237,83 @@ def create_system_message(conversation_id, text, order_id=None, event_id=None):
     save_messages(messages)
     return message
 
+
 # ---------------------------------------------------------------------------
-# Status transitions
+# Order status transitions
 # ---------------------------------------------------------------------------
 ORDER_TRANSITIONS = {
     "pending": {"approved", "rejected"},
-    "approved": {"delivered", "rejected"},
+    "approved": {"delivered"},
     "rejected": {"approved"},
     "delivered": set(),
-    "cancelled": set(),
 }
 
+
 # ---------------------------------------------------------------------------
-# Routes: system
+# Routes
 # ---------------------------------------------------------------------------
 @app.route("/api/health", methods=["GET"])
 def health():
-    return jsonify({
+    health_data = {
         "success": True,
+        "api": True,
+        "storage": True,
         "service": "TIME BRAND API",
-        "status": "online"
-    })
+        "status": "healthy",
+    }
+    try:
+        read_json_blob("products.json")
+    except StorageError as exc:
+        health_data.update({"success": False, "storage": False, "error": str(exc)})
+        return jsonify(health_data), 500
+    return jsonify(health_data)
 
-# ---------------------------------------------------------------------------
-# Routes: auth
-# ---------------------------------------------------------------------------
+
 @app.route("/api/auth/login", methods=["POST"])
 def auth_login():
     data = request.get_json(silent=True) or {}
     password = data.get("password", "")
-    if not ADMIN_PASSWORD:
-        return _error("Admin password is not configured", 500)
     if password != ADMIN_PASSWORD:
         return _error("Invalid admin password", 401)
     session.permanent = True
     session["admin"] = True
-    return jsonify({"success": True, "admin": True, "message": "Login successful"})
+    return jsonify({"success": True, "admin": True})
+
 
 @app.route("/api/auth/logout", methods=["POST"])
 def auth_logout():
     session.pop("admin", None)
     return jsonify({"success": True})
 
+
 @app.route("/api/auth/check", methods=["GET"])
 def auth_check():
     return jsonify({"success": True, "admin": is_admin()})
 
-# Alias for backward compatibility
+
+# backward compatible aliases
 @app.route("/api/admin/login", methods=["POST"])
 def admin_login():
     return auth_login()
+
 
 @app.route("/api/admin/logout", methods=["POST"])
 def admin_logout():
     return auth_logout()
 
+
 @app.route("/api/admin/check", methods=["GET"])
 def admin_check():
     return auth_check()
 
-# ---------------------------------------------------------------------------
-# Routes: products
-# ---------------------------------------------------------------------------
+
 @app.route("/api/products", methods=["GET"])
 def list_products():
     products = load_products()
     if not is_admin():
         products = [p for p in products if p.get("active", True)]
     return jsonify({"success": True, "products": products})
+
 
 @app.route("/api/products", methods=["POST"])
 @admin_required
@@ -286,6 +355,7 @@ def create_product():
     products.append(product)
     save_products(products)
     return jsonify({"success": True, "product": product}), 201
+
 
 @app.route("/api/products/<int:product_id>", methods=["PUT"])
 @admin_required
@@ -329,6 +399,7 @@ def update_product(product_id):
     save_products(products)
     return jsonify({"success": True, "product": product})
 
+
 @app.route("/api/products/<int:product_id>", methods=["DELETE"])
 @admin_required
 def delete_product(product_id):
@@ -340,9 +411,7 @@ def delete_product(product_id):
     save_products(products)
     return jsonify({"success": True})
 
-# ---------------------------------------------------------------------------
-# Routes: orders
-# ---------------------------------------------------------------------------
+
 @app.route("/api/orders", methods=["GET"])
 def list_orders():
     orders = load_orders()
@@ -353,6 +422,7 @@ def list_orders():
         return _error("userId is required", 401)
     orders = [o for o in orders if o.get("userId") == user_id]
     return jsonify({"success": True, "orders": orders})
+
 
 @app.route("/api/orders", methods=["POST"])
 def create_order():
@@ -365,7 +435,7 @@ def create_order():
     address = customer.get("shippingAddress") or data.get("shippingAddress") or ""
     payment_method = (customer.get("paymentMethod") or data.get("paymentMethod") or "").lower()
     payment_reference = customer.get("paymentReference") or data.get("paymentReference") or ""
-    payment_proof = customer.get("paymentProof") or data.get("paymentProof") or ""
+    payment_screenshot_base64 = data.get("paymentScreenshotBase64") or customer.get("paymentScreenshotBase64") or ""
 
     if not user_id or not (user_id.startswith("user_") or user_id.startswith("guest_")):
         return _error("Valid userId is required", 400)
@@ -381,11 +451,7 @@ def create_order():
         return _error("Payment reference is required", 400)
 
     orders = load_orders()
-    duplicate = next(
-        (o for o in orders if o.get("paymentReference") == payment_reference),
-        None
-    )
-    if duplicate:
+    if any(o.get("paymentReference") == payment_reference for o in orders):
         return _error("This payment reference has already been used", 400)
 
     items_data = data.get("items") or []
@@ -394,7 +460,6 @@ def create_order():
 
     products = load_products()
     product_map = {int(p["id"]): p for p in products}
-
     validated_items = []
     total = 0.0
 
@@ -427,11 +492,33 @@ def create_order():
 
     total = round(total, 2)
     next_id = max((o.get("id", 0) for o in orders), default=1000) + 1
+    order_id = next_id
 
     payment_account = TELEBIRR_ACCOUNT if payment_method == "telebirr" else CBE_ACCOUNT
 
+    screenshot_filename = None
+    if payment_screenshot_base64:
+        try:
+            if "," in payment_screenshot_base64:
+                header, b64_data = payment_screenshot_base64.split(",", 1)
+            else:
+                header, b64_data = "", payment_screenshot_base64
+            mime = "image/png"
+            ext = "png"
+            if "jpeg" in header or "jpg" in header:
+                mime = "image/jpeg"
+                ext = "jpg"
+            elif "webp" in header:
+                mime = "image/webp"
+                ext = "webp"
+            screenshot_bytes = base64.b64decode(b64_data)
+            screenshot_filename = f"screenshots/order_{order_id}.{ext}"
+            upload_blob_file(screenshot_filename, screenshot_bytes, mime)
+        except (ValueError, StorageError) as exc:
+            return _error(f"Failed to store payment screenshot: {exc}", 500)
+
     order = {
-        "id": next_id,
+        "id": order_id,
         "userId": user_id,
         "userName": str(name).strip(),
         "email": email,
@@ -443,9 +530,8 @@ def create_order():
         "paymentMethod": payment_method,
         "paymentAccount": payment_account,
         "paymentReference": payment_reference,
-        "paymentProof": payment_proof,
+        "paymentScreenshot": screenshot_filename,
         "paymentStatus": "pending",
-        "paymentSubmittedAt": utc_now(),
         "status": "pending",
         "createdAt": utc_now(),
         "updatedAt": utc_now(),
@@ -454,14 +540,15 @@ def create_order():
     orders.append(order)
     save_orders(orders)
 
-    create_system_message(
+    create_order_notification(
         user_id,
-        f"🧾 Payment proof received for order #{order['id']}.\nOur team will review your payment and update your order shortly.",
-        order_id=order["id"],
-        event_id=f"order_{order['id']}_payment_submitted",
+        order_id,
+        f"🛍️ Your order #{order_id} has been received.\nPayment information has been submitted.\nYour order is waiting for confirmation.\nTIME BRAND will review your payment shortly.",
+        f"order_{order_id}_created",
     )
 
     return jsonify({"success": True, "order": order}), 201
+
 
 @app.route("/api/orders/<int:order_id>", methods=["PUT"])
 @admin_required
@@ -478,6 +565,7 @@ def update_order(order_id):
     save_orders(orders)
     return jsonify({"success": True, "order": order})
 
+
 @app.route("/api/orders/<int:order_id>", methods=["DELETE"])
 @admin_required
 def delete_order(order_id):
@@ -489,149 +577,81 @@ def delete_order(order_id):
     save_orders(orders)
     return jsonify({"success": True})
 
-# ---------------------------------------------------------------------------
-# Payment verification/rejection
-# ---------------------------------------------------------------------------
-@app.route("/api/orders/<int:order_id>/verify-payment", methods=["POST"])
+
+@app.route("/api/orders/<int:order_id>/payment-proof", methods=["GET"])
 @admin_required
-def verify_payment(order_id):
+def order_payment_proof(order_id):
     orders = load_orders()
     order = next((o for o in orders if o.get("id") == order_id), None)
     if not order:
         return _error("Order not found", 404)
-    if order.get("paymentStatus") not in ("pending", "rejected"):
-        return _error("Payment cannot be verified in current state", 400)
+    screenshot = order.get("paymentScreenshot")
+    if not screenshot:
+        return _error("No payment screenshot uploaded", 404)
+    content, content_type, status = download_blob_file(screenshot)
+    if status == 404:
+        return _error("Screenshot file not found", 404)
+    if status != 200:
+        return _error("Failed to download screenshot", 500)
+    return Response(content, mimetype=content_type)
 
-    order["paymentStatus"] = "verified"
-    order["paymentVerifiedAt"] = utc_now()
-    order["updatedAt"] = utc_now()
-    save_orders(orders)
 
-    create_system_message(
-        order["userId"],
-        f"✅ Your payment for order #{order_id} has been verified.\nYour order is now waiting for approval.",
-        order_id=order_id,
-        event_id=f"order_{order_id}_payment_verified",
-    )
-
-    return jsonify({"success": True, "order": order})
-
-@app.route("/api/orders/<int:order_id>/reject-payment", methods=["POST"])
+@app.route("/api/orders/<int:order_id>/status", methods=["PUT"])
 @admin_required
-def reject_payment(order_id):
-    reason = (request.get_json(silent=True) or {}).get("reason", "").strip()
-    if not reason:
-        return _error("Rejection reason is required", 400)
+def update_order_status(order_id):
+    data = request.get_json(silent=True) or {}
+    new_status = data.get("status")
+    reason = (data.get("reason") or "").strip()
+
+    if new_status not in ORDER_TRANSITIONS:
+        return _error("Invalid status", 400)
+
     orders = load_orders()
     order = next((o for o in orders if o.get("id") == order_id), None)
     if not order:
         return _error("Order not found", 404)
-    if order.get("paymentStatus") not in ("pending", "verified"):
-        return _error("Payment cannot be rejected in current state", 400)
 
-    order["paymentStatus"] = "rejected"
-    order["paymentRejectedAt"] = utc_now()
-    order["paymentRejectionReason"] = reason
+    old_status = order.get("status")
+    if new_status not in ORDER_TRANSITIONS.get(old_status, set()):
+        return _error(f"Status transition {old_status} -> {new_status} is not allowed", 400)
+
+    order["status"] = new_status
     order["updatedAt"] = utc_now()
+    if new_status == "approved":
+        order["approvedAt"] = utc_now()
+    elif new_status == "rejected":
+        if not reason:
+            return _error("Rejection reason is required", 400)
+        order["rejectionReason"] = reason
+        order["rejectedAt"] = utc_now()
+    elif new_status == "delivered":
+        order["deliveredAt"] = utc_now()
+
     save_orders(orders)
 
-    create_system_message(
-        order["userId"],
-        f"❌ Your payment for order #{order_id} could not be verified.\nReason: {reason}\nPlease submit valid payment proof or contact TIME BRAND.",
-        order_id=order_id,
-        event_id=f"order_{order_id}_payment_rejected",
-    )
+    if new_status == "approved":
+        message_text = f"✅ Your order #{order_id} has been APPROVED!\nYour payment has been confirmed.\nYou will receive shipping updates soon.\nThank you for shopping with TIME BRAND."
+        event_id = f"order_{order_id}_approved"
+    elif new_status == "rejected":
+        message_text = f"❌ Your order #{order_id} has been REJECTED.\nReason: {reason}\nPlease contact TIME BRAND support for assistance."
+        event_id = f"order_{order_id}_rejected"
+    elif new_status == "delivered":
+        message_text = f"📦 Your order #{order_id} has been DELIVERED! Thank you for shopping with TIME BRAND."
+        event_id = f"order_{order_id}_delivered"
+    else:
+        message_text = f"Order #{order_id} status changed to {new_status}."
+        event_id = f"order_{order_id}_status_{new_status}"
 
-    return jsonify({"success": True, "order": order})
+    message = create_order_notification(order["userId"], order_id, message_text, event_id)
 
-# ---------------------------------------------------------------------------
-# Order status actions
-# ---------------------------------------------------------------------------
-@app.route("/api/orders/<int:order_id>/approve", methods=["POST"])
-@admin_required
-def approve_order(order_id):
-    orders = load_orders()
-    order = next((o for o in orders if o.get("id") == order_id), None)
-    if not order:
-        return _error("Order not found", 404)
-    if order.get("paymentStatus") != "verified":
-        return _error("Payment must be verified before the order can be approved", 400)
-    if order.get("status") not in ("pending", "rejected"):
-        return _error("Order cannot be approved in current state", 400)
+    return jsonify({"success": True, "order": order, "message": message})
 
-    order["status"] = "approved"
-    order["approvedAt"] = utc_now()
-    order["updatedAt"] = utc_now()
-    save_orders(orders)
 
-    create_system_message(
-        order["userId"],
-        f"✅ Your order #{order_id} has been APPROVED!\nYou will receive shipping updates soon.",
-        order_id=order_id,
-        event_id=f"order_{order_id}_approved",
-    )
-
-    return jsonify({"success": True, "order": order})
-
-@app.route("/api/orders/<int:order_id>/reject", methods=["POST"])
-@admin_required
-def reject_order(order_id):
-    reason = (request.get_json(silent=True) or {}).get("reason", "").strip()
-    if not reason:
-        return _error("Rejection reason is required", 400)
-    orders = load_orders()
-    order = next((o for o in orders if o.get("id") == order_id), None)
-    if not order:
-        return _error("Order not found", 404)
-    if order.get("status") not in ("pending", "approved"):
-        return _error("Order cannot be rejected in current state", 400)
-
-    order["status"] = "rejected"
-    order["rejectionReason"] = reason
-    order["rejectedAt"] = utc_now()
-    order["updatedAt"] = utc_now()
-    save_orders(orders)
-
-    create_system_message(
-        order["userId"],
-        f"❌ Your order #{order_id} has been REJECTED.\nReason: {reason}\nPlease contact TIME BRAND support.",
-        order_id=order_id,
-        event_id=f"order_{order_id}_rejected",
-    )
-
-    return jsonify({"success": True, "order": order})
-
-@app.route("/api/orders/<int:order_id>/deliver", methods=["POST"])
-@admin_required
-def deliver_order(order_id):
-    orders = load_orders()
-    order = next((o for o in orders if o.get("id") == order_id), None)
-    if not order:
-        return _error("Order not found", 404)
-    if order.get("status") != "approved":
-        return _error("Order must be approved before delivery", 400)
-
-    order["status"] = "delivered"
-    order["deliveredAt"] = utc_now()
-    order["updatedAt"] = utc_now()
-    save_orders(orders)
-
-    create_system_message(
-        order["userId"],
-        f"📦 Your order #{order_id} has been DELIVERED!\nThank you for shopping with TIME BRAND.",
-        order_id=order_id,
-        event_id=f"order_{order_id}_delivered",
-    )
-
-    return jsonify({"success": True, "order": order})
-
-# ---------------------------------------------------------------------------
-# Routes: users
-# ---------------------------------------------------------------------------
 @app.route("/api/users", methods=["GET"])
 @admin_required
 def list_users():
     return jsonify({"success": True, "users": load_users()})
+
 
 @app.route("/api/users", methods=["POST"])
 def create_or_login_user():
@@ -668,9 +688,7 @@ def create_or_login_user():
     save_users(users)
     return jsonify({"success": True, "user": user}), 201
 
-# ---------------------------------------------------------------------------
-# Routes: messages
-# ---------------------------------------------------------------------------
+
 @app.route("/api/messages", methods=["GET"])
 @admin_required
 def list_conversations():
@@ -694,15 +712,13 @@ def list_conversations():
     conversations.sort(key=lambda c: c.get("latestMessage", {}).get("timestamp", ""), reverse=True)
     return jsonify({"success": True, "conversations": conversations})
 
+
 @app.route("/api/messages/<path:conversation_id>", methods=["GET"])
 def get_messages(conversation_id):
     messages = load_messages()
     conversation = messages.get(conversation_id, [])
-    return jsonify({
-        "success": True,
-        "conversationId": conversation_id,
-        "messages": conversation,
-    })
+    return jsonify({"success": True, "conversationId": conversation_id, "messages": conversation})
+
 
 @app.route("/api/messages", methods=["POST"])
 def post_message():
@@ -739,6 +755,7 @@ def post_message():
     save_messages(messages)
     return jsonify({"success": True, "message": message}), 201
 
+
 @app.route("/api/messages/<path:conversation_id>/read", methods=["PATCH"])
 def mark_messages_read(conversation_id):
     messages = load_messages()
@@ -752,6 +769,7 @@ def mark_messages_read(conversation_id):
         save_messages(messages)
     return jsonify({"success": True, "updated": changed})
 
+
 @app.route("/api/messages/<path:conversation_id>", methods=["DELETE"])
 @admin_required
 def delete_conversation(conversation_id):
@@ -761,24 +779,26 @@ def delete_conversation(conversation_id):
         save_messages(messages)
     return jsonify({"success": True})
 
-# ---------------------------------------------------------------------------
-# Error handlers
-# ---------------------------------------------------------------------------
+
 @app.errorhandler(StorageError)
 def handle_storage_error(error):
     return jsonify({"success": False, "error": str(error)}), 500
+
 
 @app.errorhandler(404)
 def handle_not_found(error):
     return _error("Not found", 404)
 
+
 @app.errorhandler(405)
 def handle_method_not_allowed(error):
     return _error("Method not allowed", 405)
 
+
 @app.errorhandler(500)
 def handle_internal_error(error):
     return _error("Internal server error", 500)
+
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -1,3 +1,7 @@
+/**
+ * TIME BRAND - Customer Identity & Authentication
+ * Handles customer session persistence and account modal.
+ */
 (function (global) {
     const STORAGE_KEY = "timebrand_user";
 
@@ -5,6 +9,7 @@
         try {
             return JSON.parse(localStorage.getItem(STORAGE_KEY));
         } catch (error) {
+            console.error("[AUTH] Failed to parse cached user:", error);
             return null;
         }
     }
@@ -13,7 +18,7 @@
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
         } catch (error) {
-            // ignore
+            console.error("[AUTH] Failed to cache user:", error);
         }
     }
 
@@ -21,14 +26,14 @@
         try {
             localStorage.removeItem(STORAGE_KEY);
         } catch (error) {
-            // ignore
+            console.error("[AUTH] Failed to clear cached user:", error);
         }
     }
 
-    async function ensureIdentity() {
-        return getCachedUser();
-    }
-
+    /**
+     * Ensures a customer identity exists.
+     * Returns cached user if available; otherwise prompts for account details.
+     */
     function requireUser() {
         const cached = getCachedUser();
         if (cached && cached.id) {
@@ -38,18 +43,19 @@
         return new Promise((resolve, reject) => {
             const modal = document.getElementById("account-modal");
             if (!modal) {
-                reject(new Error("Account modal is missing"));
+                reject(new Error("Account modal is missing in DOM."));
                 return;
             }
             window.__resolveIdentity = resolve;
             window.__rejectIdentity = reject;
             renderAccountForm();
-            openModal("account-modal");
+            modal.classList.add("open");
         });
     }
 
     function resolveUser(user) {
-        closeModal("account-modal");
+        const modal = document.getElementById("account-modal");
+        if (modal) modal.classList.remove("open");
         if (window.__resolveIdentity) {
             const resolve = window.__resolveIdentity;
             window.__resolveIdentity = null;
@@ -59,7 +65,8 @@
     }
 
     function rejectUser(error) {
-        closeModal("account-modal");
+        const modal = document.getElementById("account-modal");
+        if (modal) modal.classList.remove("open");
         if (window.__rejectIdentity) {
             const reject = window.__rejectIdentity;
             window.__resolveIdentity = null;
@@ -68,22 +75,21 @@
         }
     }
 
+    /**
+     * Registers or logs in a customer.
+     */
     async function loginOrRegister({ name, email, phone, register = false }) {
-        const response = await TimeAPI.createUser({
-            name,
-            email,
-            phone,
-            register: !!register,
-        });
-
+        const response = await TimeAPI.createUser({ name, email, phone, register });
         if (response.success && response.user) {
             setCachedUser(response.user);
             return response.user;
         }
-
-        throw new Error(response.error || "Could not save customer identity");
+        throw new Error(response.error || "Could not save customer identity.");
     }
 
+    /**
+     * Renders the account form inside the account modal.
+     */
     function renderAccountForm() {
         const container = document.getElementById("account-panel");
         if (!container) return;
@@ -128,11 +134,22 @@
         const phone = document.getElementById("account-phone").value.trim();
         const register = document.getElementById("account-register").checked;
 
+        if (!name) {
+            errorBox.textContent = "Please enter your full name.";
+            return;
+        }
+        if (!email) {
+            errorBox.textContent = "Please enter your email address.";
+            return;
+        }
+
         try {
             const user = await loginOrRegister({ name, email, phone, register });
             setCachedUser(user);
             resolveUser(user);
-            if (typeof window.onUserUpdate === "function") window.onUserUpdate(user);
+            if (typeof window.onUserUpdate === "function") {
+                window.onUserUpdate(user);
+            }
         } catch (error) {
             errorBox.textContent = error.message;
         }
@@ -140,34 +157,25 @@
 
     function openAccountModal() {
         renderAccountForm();
-        openModal("account-modal");
-    }
-
-    function openModal(id) {
-        const modal = document.getElementById(id);
+        const modal = document.getElementById("account-modal");
         if (modal) modal.classList.add("open");
-    }
-
-    function closeModal(id) {
-        const modal = document.getElementById(id);
-        if (modal) modal.classList.remove("open");
     }
 
     function escapeHtml(text) {
         if (!text) return "";
-        return String(text)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+        return String(text).replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        }[c]));
     }
 
     global.TimeAuth = {
         getCachedUser,
         setCachedUser,
         clearCachedUser,
-        ensureIdentity,
         requireUser,
         resolveUser,
         rejectUser,

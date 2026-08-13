@@ -1,6 +1,14 @@
+/**
+ * TIME BRAND - API Client
+ * Centralized API communication layer.
+ */
 (function (global) {
     const API_BASE = "/api";
 
+    /**
+     * Core request function
+     * Handles JSON parsing, error detection, and network failures.
+     */
     async function request(path, options = {}) {
         const headers = {
             "Content-Type": "application/json",
@@ -10,6 +18,7 @@
         const config = {
             ...options,
             headers,
+            credentials: "include", // For admin session cookies
         };
 
         if (options.body && typeof options.body !== "string") {
@@ -20,7 +29,8 @@
         try {
             response = await fetch(API_BASE + path, config);
         } catch (networkError) {
-            throw new Error("Unable to connect to TIME BRAND server.");
+            console.error("[API] Network error:", networkError);
+            throw new Error("Unable to connect to TIME BRAND server. Please check your internet connection.");
         }
 
         const text = await response.text();
@@ -28,21 +38,25 @@
         try {
             data = text ? JSON.parse(text) : null;
         } catch (parseError) {
+            console.error("[API] JSON parse error:", parseError);
             data = { success: false, error: "Invalid server response" };
         }
 
         if (!response.ok) {
-            const message =
-                (data && data.error) || `Request failed with status ${response.status}`;
+            const message = (data && data.error) || `Request failed with status ${response.status}`;
+            console.error(`[API] ${path} failed:`, message);
             throw new Error(message);
         }
 
+        console.log(`[API] ${path} succeeded:`, data);
         return data;
     }
 
+    /**
+     * Public API interface
+     */
     const TimeAPI = {
-        baseUrl: API_BASE,
-
+        // Generic methods
         get: (path) => request(path),
         post: (path, body) => request(path, { method: "POST", body }),
         put: (path, body) => request(path, { method: "PUT", body }),
@@ -64,10 +78,12 @@
         getOrder: (id) => request(`/orders/${id}`),
         createOrder: (data) => request("/orders", { method: "POST", body: data }),
         updateOrder: (id, data) => request(`/orders/${id}`, { method: "PUT", body: data }),
+        updateOrderStatus: (id, status, reason = "") => {
+            const body = { status };
+            if (reason) body.reason = reason;
+            return request(`/orders/${id}/status`, { method: "PUT", body });
+        },
         deleteOrder: (id) => request(`/orders/${id}`, { method: "DELETE" }),
-        approveOrder: (id) => request(`/orders/${id}/approve`, { method: "POST" }),
-        rejectOrder: (id, reason) => request(`/orders/${id}/reject`, { method: "POST", body: { reason } }),
-        deliverOrder: (id) => request(`/orders/${id}/deliver`, { method: "POST" }),
 
         // Users
         getUsers: () => request("/users"),
@@ -75,19 +91,16 @@
         createUser: (data) => request("/users", { method: "POST", body: data }),
 
         // Messages
-        getMessages: (conversationId) =>
-            request(`/messages/${encodeURIComponent(conversationId)}`),
+        getMessages: (conversationId) => request(`/messages/${encodeURIComponent(conversationId)}`),
         listConversations: () => request("/messages"),
         sendMessage: (data) => request("/messages", { method: "POST", body: data }),
-        markMessagesRead: (conversationId) =>
-            request(`/messages/${encodeURIComponent(conversationId)}/read`, { method: "PATCH" }),
-        deleteConversation: (conversationId) =>
-            request(`/messages/${encodeURIComponent(conversationId)}`, { method: "DELETE" }),
+        markMessagesRead: (conversationId) => request(`/messages/${encodeURIComponent(conversationId)}/read`, { method: "PATCH" }),
+        deleteConversation: (conversationId) => request(`/messages/${encodeURIComponent(conversationId)}`, { method: "DELETE" }),
 
         // Admin auth
-        adminLogin: (password) => request("/admin/login", { method: "POST", body: { password } }),
-        adminLogout: () => request("/admin/logout", { method: "POST" }),
-        adminCheck: () => request("/admin/check"),
+        adminLogin: (password) => request("/auth/login", { method: "POST", body: { password } }),
+        adminLogout: () => request("/auth/logout", { method: "POST" }),
+        adminCheck: () => request("/auth/check"),
     };
 
     global.TimeAPI = TimeAPI;
