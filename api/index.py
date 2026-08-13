@@ -31,7 +31,8 @@ def read_blob(filename):
     if not BLOB_TOKEN:
         raise StorageError("BLOB_READ_WRITE_TOKEN is not configured")
 
-    url = f"{BLOB_BASE}/{filename}"
+    # Private URL format with token query parameter
+    url = f"{BLOB_BASE}/{filename}?token={BLOB_TOKEN}"
     headers = {
         "Authorization": f"Bearer {BLOB_TOKEN}",
     }
@@ -63,7 +64,8 @@ def write_blob(filename, data):
     if not BLOB_TOKEN:
         raise StorageError("BLOB_READ_WRITE_TOKEN is not configured")
 
-    url = f"{BLOB_BASE}/{filename}"
+    # Private URL format with token query parameter
+    url = f"{BLOB_BASE}/{filename}?token={BLOB_TOKEN}"
     headers = {
         "Authorization": f"Bearer {BLOB_TOKEN}",
         "Content-Type": "application/json",
