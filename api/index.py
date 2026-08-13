@@ -30,8 +30,8 @@ class StorageError(Exception):
 
 
 def _blob_url(filename):
-    """Construct the private Blob URL."""
-    return f"{BLOB_BASE}/{filename}"
+    """Construct the private Blob URL with token query parameter."""
+    return f"{BLOB_BASE}/{filename}?token={BLOB_TOKEN}"
 
 
 def _blob_headers(content_type=None):
@@ -44,15 +44,17 @@ def _blob_headers(content_type=None):
 def read_json_blob(filename):
     url = _blob_url(filename)
     headers = _blob_headers()
+    print(f"[DEBUG] GET URL: {url}")
     try:
         resp = requests.get(url, headers=headers, timeout=15)
     except requests.RequestException as exc:
         raise StorageError(f"Network error reading {filename}: {exc}")
 
+    print(f"[DEBUG] GET Status: {resp.status_code}, Body: {resp.text[:300]}")
     if resp.status_code == 404:
         return None
     if resp.status_code != 200:
-        raise StorageError(f"Blob read failed for {filename}: HTTP {resp.status_code}")
+        raise StorageError(f"Blob read failed for {filename}: HTTP {resp.status_code} - {resp.text[:300]}")
 
     text = resp.text.strip()
     if not text:
@@ -67,11 +69,13 @@ def write_json_blob(filename, data):
     url = _blob_url(filename)
     headers = _blob_headers(content_type="application/json")
     body = json.dumps(data)
+    print(f"[DEBUG] PUT URL: {url}")
     try:
         resp = requests.put(url, data=body, headers=headers, timeout=20)
     except requests.RequestException as exc:
         raise StorageError(f"Network error writing {filename}: {exc}")
 
+    print(f"[DEBUG] PUT Status: {resp.status_code}, Body: {resp.text[:300]}")
     if resp.status_code not in (200, 201, 204):
         raise StorageError(
             f"Blob write failed for {filename}: HTTP {resp.status_code} - {resp.text[:300]}"
@@ -81,11 +85,13 @@ def write_json_blob(filename, data):
 def upload_blob_file(filename, file_bytes, content_type):
     url = _blob_url(filename)
     headers = _blob_headers(content_type=content_type)
+    print(f"[DEBUG] UPLOAD URL: {url}")
     try:
         resp = requests.put(url, data=file_bytes, headers=headers, timeout=30)
     except requests.RequestException as exc:
         raise StorageError(f"Network error uploading {filename}: {exc}")
 
+    print(f"[DEBUG] UPLOAD Status: {resp.status_code}, Body: {resp.text[:300]}")
     if resp.status_code not in (200, 201, 204):
         raise StorageError(
             f"Blob upload failed for {filename}: HTTP {resp.status_code} - {resp.text[:300]}"
@@ -96,11 +102,13 @@ def upload_blob_file(filename, file_bytes, content_type):
 def download_blob_file(filename):
     url = _blob_url(filename)
     headers = _blob_headers()
+    print(f"[DEBUG] DOWNLOAD URL: {url}")
     try:
         resp = requests.get(url, headers=headers, timeout=20)
     except requests.RequestException as exc:
         raise StorageError(f"Network error downloading {filename}: {exc}")
 
+    print(f"[DEBUG] DOWNLOAD Status: {resp.status_code}, Body: {resp.text[:300]}")
     if resp.status_code == 404:
         return None, None, 404
     if resp.status_code != 200:
@@ -250,7 +258,7 @@ ORDER_TRANSITIONS = {
 
 
 # ---------------------------------------------------------------------------
-# Routes
+# Routes: system
 # ---------------------------------------------------------------------------
 @app.route("/api/health", methods=["GET"])
 def health():
@@ -269,6 +277,9 @@ def health():
     return jsonify(health_data)
 
 
+# ---------------------------------------------------------------------------
+# Auth
+# ---------------------------------------------------------------------------
 @app.route("/api/auth/login", methods=["POST"])
 def auth_login():
     data = request.get_json(silent=True) or {}
@@ -307,6 +318,9 @@ def admin_check():
     return auth_check()
 
 
+# ---------------------------------------------------------------------------
+# Products
+# ---------------------------------------------------------------------------
 @app.route("/api/products", methods=["GET"])
 def list_products():
     products = load_products()
@@ -412,6 +426,9 @@ def delete_product(product_id):
     return jsonify({"success": True})
 
 
+# ---------------------------------------------------------------------------
+# Orders
+# ---------------------------------------------------------------------------
 @app.route("/api/orders", methods=["GET"])
 def list_orders():
     orders = load_orders()
@@ -647,6 +664,9 @@ def update_order_status(order_id):
     return jsonify({"success": True, "order": order, "message": message})
 
 
+# ---------------------------------------------------------------------------
+# Users
+# ---------------------------------------------------------------------------
 @app.route("/api/users", methods=["GET"])
 @admin_required
 def list_users():
@@ -689,6 +709,9 @@ def create_or_login_user():
     return jsonify({"success": True, "user": user}), 201
 
 
+# ---------------------------------------------------------------------------
+# Messages
+# ---------------------------------------------------------------------------
 @app.route("/api/messages", methods=["GET"])
 @admin_required
 def list_conversations():
@@ -780,6 +803,9 @@ def delete_conversation(conversation_id):
     return jsonify({"success": True})
 
 
+# ---------------------------------------------------------------------------
+# Error handlers
+# ---------------------------------------------------------------------------
 @app.errorhandler(StorageError)
 def handle_storage_error(error):
     return jsonify({"success": False, "error": str(error)}), 500
